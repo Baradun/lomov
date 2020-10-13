@@ -26,12 +26,16 @@ def get_A(step, t, A=None):
 t=0.01
 y = np.arange(0, 1, t)
 F0 = np.array([1.0, 0.0])
+psi = np.array([1.,0.])
 
 for i, t in enumerate(y):
     if i == 0:
         A = get_A(i,t)
+        
     else:
         A = H0 + get_A(i,t,A)* W
+    psi = A * psi    
 
-print(A)
+
+print(psi)
 
