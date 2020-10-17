@@ -11,17 +11,13 @@ W = np.array([
     [1., c]]) 
 
 
-def get_A(step, t, A=None):
-    if A is None:
-        v0 = 93536.7
-        n = 10.3
-        v = v0 * np.exp(-1*n*t) #??
-        A = H0 + v*W
-        return A
-    
-    tn = step*t 
-    A = np.exp(t*A*(tn+t/2))
-    return A
+def get_v(step, t):
+    v0 = 93536.7
+    n = 10.3
+
+    tn = step*t
+    v = v0 * np.exp(-1*n*tn)
+    return v
 
 t=0.01
 y = np.arange(0, 1, t)
@@ -29,13 +25,8 @@ F0 = np.array([1.0, 0.0])
 psi = np.array([1.,0.])
 
 for i, t in enumerate(y):
-    if i == 0:
-        A = get_A(i,t)
-        
-    else:
-        A = H0 + get_A(i,t,A)* W
-    psi = A * psi    
-
+    omega = H0 + get_v(i, t) * W
+    psi = np.exp(omega) * psi
 
 print(psi)
 
