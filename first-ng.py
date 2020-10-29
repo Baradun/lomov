@@ -37,4 +37,5 @@ for i, t in enumerate(y):
     omega = H0 + f_prof(t) * W
     psi = matrix_exp() * psi
 
+
 print(psi)
