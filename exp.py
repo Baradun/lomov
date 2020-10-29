@@ -7,6 +7,7 @@ def get_dev_deff(interpolation_points, i):
 
 def next_point(section, arr):
     maximum = -1
+    point = 0
     # Перебираем все точки из отрезка
     for i in section:
         # произведение модулей
@@ -15,8 +16,9 @@ def next_point(section, arr):
             p *= abs(i-arr[j])
 
         if p > maximum:
+            point = i
             maximum = p
-    return maximum
+    return point
 
 
 def get_interpolation_points(section, points_number):
