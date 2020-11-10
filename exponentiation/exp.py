@@ -2,10 +2,18 @@ import numpy as np
 
 
 def get_dev_deff(interpolation_points, i):
-    #points = interpolation_points[:i]
-    #for j in points:
-    #   pass
-    return np.exp(interpolation_points[i-1])
+
+    if i == 1:
+        a = interpolation_points[0]
+        b = np.exp(a)
+        return b
+        #return np.exp(interpolation_points[0])
+    else:
+        i = i - 1
+        a = get_dev_deff(interpolation_points[0:i], i)
+        b = get_dev_deff(interpolation_points[1:], i)
+        return (a - b) / (interpolation_points[i]-interpolation_points[0])
+
 
 def next_point(section, arr):
     maximum = -1
@@ -20,10 +28,8 @@ def next_point(section, arr):
         if p > maximum:
             point = i
             maximum = p
-<<<<<<< HEAD:exponentiation/exp.py
             point = i
-=======
->>>>>>> refs/remotes/origin/main:exp.py
+
     return point
 
 
@@ -47,10 +53,10 @@ def matrix_exp(matrix, section, v=1):
     interpolation_points_number = len(section)
     interpolation_points = get_interpolation_points(section, interpolation_points_number)
 
-    sum_divided_difference = get_dev_deff(interpolation_points, 0) * v
+    sum_divided_difference = get_dev_deff(interpolation_points[0:1], 1) * v
     w = v
     for i in range(1, len(section)):
-        w = matrix * w - interpolation_points[i - 1] * w
-        sum_divided_difference = sum_divided_difference + get_dev_deff(interpolation_points, i) * w
+        w = matrix * w - interpolation_points[i-1] * w
+        sum_divided_difference = sum_divided_difference + get_dev_deff(interpolation_points[0:i+1], i+1) * w
 
     return sum_divided_difference
