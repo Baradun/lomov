@@ -2,8 +2,10 @@ import numpy as np
 
 
 def get_dev_deff(interpolation_points, i):
-    pass
-
+    #points = interpolation_points[:i]
+    #for j in points:
+    #   pass
+    return np.exp(interpolation_points[i-1])
 
 def next_point(section, arr):
     maximum = -1
@@ -11,24 +13,29 @@ def next_point(section, arr):
     # Перебираем все точки из отрезка
     for i in section:
         # произведение модулей
-        p = 1
+        p = 1.0
         for j in arr:
-            p *= abs(i-arr[j])
+            p *= abs(i-j)
 
         if p > maximum:
             point = i
             maximum = p
+<<<<<<< HEAD:exponentiation/exp.py
+            point = i
+=======
+>>>>>>> refs/remotes/origin/main:exp.py
     return point
 
 
 def get_interpolation_points(section, points_number):
-
+    if str(type(section)) == "<class 'numpy.ndarray'>":
+        section = section.tolist()
     # первая точка
     arr = [max(section)]
     # остальные точки
     for i in range(2, points_number):
         arr.append(next_point(section, arr))
-    return arr
+    return np.array(arr)
 
 
 def matrix_exp(matrix, section, v=1):
@@ -37,7 +44,7 @@ def matrix_exp(matrix, section, v=1):
     section - точки из интервала с шакгом t
     v - вектор если надо exp(maxtix)*v
     """
-    interpolation_points_number = 10
+    interpolation_points_number = len(section)
     interpolation_points = get_interpolation_points(section, interpolation_points_number)
 
     sum_divided_difference = get_dev_deff(interpolation_points, 0) * v

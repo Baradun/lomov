@@ -1,6 +1,6 @@
 import numpy as np
 from math import sqrt, sin, exp
-from .exp import matrix_exp 
+from exponentiation.exp import matrix_exp
 
 
 a = 123
@@ -30,12 +30,12 @@ def get_v(step, t):
     return v
 
 
-y = np.arange(0, 1, step)
-psi = np.array([1.,0.])
+section = np.arange(0, 1+step, step)
+psi = np.array([1., 0.])
 
-for i, t in enumerate(y):
+for i, t in enumerate(section):
     omega = H0 + f_prof(t) * W
-    psi = matrix_exp() * psi
+    psi = matrix_exp(W, section) * psi
 
 
 print(psi)
