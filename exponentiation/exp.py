@@ -2,12 +2,8 @@ import numpy as np
 
 
 def get_dev_deff(interpolation_points, i):
-
     if i == 1:
-        a = interpolation_points[0]
-        b = np.exp(a)
-        return b
-        #return np.exp(interpolation_points[0])
+        return np.exp(interpolation_points[0])
     else:
         i = i - 1
         a = get_dev_deff(interpolation_points[0:i], i)
@@ -50,7 +46,7 @@ def matrix_exp(matrix, section, v=1):
     section - точки из интервала с шакгом t
     v - вектор если надо exp(maxtix)*v
     """
-    interpolation_points_number = len(section)
+    interpolation_points_number = len(section) + 1
     interpolation_points = get_interpolation_points(section, interpolation_points_number)
 
     sum_divided_difference = get_dev_deff(interpolation_points[0:1], 1) * v
