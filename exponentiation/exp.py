@@ -1,5 +1,5 @@
 import numpy as np
-
+from time import time
 
 def get_dev_deff(interpolation_points, i):
     if i == 1:
@@ -32,11 +32,14 @@ def next_point(section, arr):
 def get_interpolation_points(section, points_number):
     if str(type(section)) == "<class 'numpy.ndarray'>":
         section = section.tolist()
+    t0 = time()
     # первая точка
     arr = [max(section)]
     # остальные точки
     for i in range(2, points_number):
         arr.append(next_point(section, arr))
+    t = time()
+    print(t-t0)
     return np.array(arr)
 
 
