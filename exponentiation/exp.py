@@ -1,5 +1,7 @@
 import numpy as np
 from time import time
+from exponentiation.gen_LP import calc_LP
+
 
 def get_dev_deff(interpolation_points, i):
     if i == 1:
@@ -32,14 +34,11 @@ def next_point(section, arr):
 def get_interpolation_points(section, points_number):
     if str(type(section)) == "<class 'numpy.ndarray'>":
         section = section.tolist()
-    t0 = time()
     # первая точка
     arr = [max(section)]
     # остальные точки
     for i in range(2, points_number):
         arr.append(next_point(section, arr))
-    t = time()
-    print(t-t0)
     return np.array(arr)
 
 
@@ -50,8 +49,11 @@ def matrix_exp(matrix, section, v=1):
     v - вектор если надо exp(maxtix)*v
     """
     interpolation_points_number = len(section) + 1
-    interpolation_points = get_interpolation_points(section, interpolation_points_number)
-
+    # interpolation_points = get_interpolation_points(section, interpolation_points_number)
+    epsilon = 1e-10
+    delta = 1e-5
+    N = interpolation_points_number
+    interpolation_points = calc_LP(epsilon, delta, N)
     sum_divided_difference = get_dev_deff(interpolation_points[0:1], 1) * v
     w = v
     for i in range(1, len(section)):

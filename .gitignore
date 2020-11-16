@@ -7,3 +7,6 @@ __pycache__/
 *.py[cod]
 
 .idea
+/julia-fn/lp-lb_N500.dat
+/lp-rb_N500.dat
+/divd-diff-exp_N500.dat
