@@ -8,5 +8,5 @@ open(fname, "r") do f
   read!(f, ps)
 end
 
-println("ps length: ", length(ps))
+println(length(ps))
 println(ps)
