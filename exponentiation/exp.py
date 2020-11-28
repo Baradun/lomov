@@ -1,13 +1,43 @@
 import numpy as np
+import numpy.linalg as la
+from math import sqrt, exp
 
+def matrix_exp_leja(matrix, leja_points, div_diff, number_points, v=1):
 
-def matrix_exp_leja(matrix, leja_points, div_diff, v=1):
-
-    interpolation_points = leja_points
+    interpolation_points = leja_points[0:number_points]
     sum_divided_difference = div_diff[0] * v
+    #print(sum_divided_difference)
     w = v
-    for i in np.arange(1, len(interpolation_points)):
+    for i in np.arange(1, number_points):
+        #print(f'{i} ', matrix.dot(w))
         w = matrix.dot(w) - interpolation_points[i-1] * w
         sum_divided_difference = sum_divided_difference + div_diff[i] * w
-        #print(sum_divided_difference)
     return sum_divided_difference
+
+
+def matrix_exp_puzzer(matrix, v, t):
+    I = np.array([
+        [1.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0]])
+    z = np.trace(matrix)/3.0
+    matrix0 = matrix - z * I
+    p = np.trace(matrix0.dot(matrix0))*0.5
+    q = la.det(matrix0)
+
+    def get_lambda(k):
+        solve = 2*np.sqrt(p/3)*np.cos((1/3)*np.arccos((3*q/(2*p))*np.sqrt(3./p)) - 2*np.pi*k/3)
+        return solve
+
+    lbd0 = get_lambda(2.0)
+    lbd1 = get_lambda(1.0)
+    lbd2 = get_lambda(0.0)
+    a = lbd1 - lbd0
+    b = lbd2 - lbd0
+    r0 = -1*(1.0 - np.exp(1j*a*t))/a
+    r1 = (-1.0/(a-b))*(-r0-((1.0 - np.exp(1j*b*t))/b))
+
+    q1 = np.exp(1j*t*z)
+    q2 = np.exp(1.0j*lbd0*t)
+    q3 = (1.0-lbd0*(r0-lbd1*r1))*I + (r0+lbd2*r1)*matrix0 + r1*matrix0.dot(matrix0)
+    return q1*q2*q3
