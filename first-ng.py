@@ -1,33 +1,52 @@
 import numpy as np
-from math import sqrt, sin
-from exponentiation.exp import matrix_exp_leja as exp
+from math import sqrt, sin, cos
+from exponentiation.exp import matrix_exp_puzzer as exp
 
 
-a = 123
+a = 4.35196e4/3.0
+b = 0.030553
 H0 = np.array([
-    [0., 0.],
-    [0., a]])
+    [0., 0., 0.],
+    [0., b, 0],
+    [0., 0, 1]])
 
-c = sqrt(1-sin(0.437)**2)
+rad = np.pi/180
+teta12 = 33.62 *rad
+teta23 = 27.2 * rad
+teta13 = 8.53 * rad
 W = np.array([
-    [c, 1.],
-    [1., c]])
+    [cos(teta13)**2 * cos(teta12)**2,
+     cos(teta12)*sin(teta12)*cos(teta13)**2,
+     cos(teta12)*cos(teta13)*sin(teta13)],
+
+    [cos(teta12)*sin(teta12)*cos(teta13)**2,
+     sin(teta12)**2 * cos(teta13)**2,
+     sin(teta12)*cos(teta13)*sin(teta13)],
+
+    [cos(teta12)*cos(teta13)*sin(teta13),
+     sin(teta12)*cos(teta13)*sin(teta13),
+     sin(teta13)**2]])
+
 v0 = 93536.7
 n = 10.3
 
 step = 0.01
+v = np.array([
+    [1.0],
+    [0.0],
+    [0.0]])
 
 
 def f_prof(t):
-    return v0*exp(-1*n*t)
+    return v0*np.exp(-1*n*t)
 
 
 section = np.arange(0, 1+step, step)
-psi = np.array([1., 0.])
+psi = v
 
 for i, t in enumerate(section):
     omega = H0 + f_prof(t) * W
-    psi = exp(W, section) * psi
+    psi = exp(W, psi, section)
 
 
 print(psi)

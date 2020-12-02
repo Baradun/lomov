@@ -29,9 +29,13 @@ def matrix_exp_puzzer(matrix, v, t):
         solve = 2*np.sqrt(p/3)*np.cos((1/3)*np.arccos((3*q/(2*p))*np.sqrt(3./p)) - 2*np.pi*k/3)
         return solve
 
-    lbd0 = get_lambda(2.0)
-    lbd1 = get_lambda(1.0)
-    lbd2 = get_lambda(0.0)
+    ls = np.sort(np.array([get_lambda(0.0), get_lambda(1.0), get_lambda(2.0)]))
+    print(ls)
+
+    lbd0 = ls[0]
+    lbd1 = ls[1]
+    lbd2 = ls[2]
+
     a = lbd1 - lbd0
     b = lbd2 - lbd0
     r0 = -1*(1.0 - np.exp(1j*a*t))/a
@@ -40,4 +44,4 @@ def matrix_exp_puzzer(matrix, v, t):
     q1 = np.exp(1j*t*z)
     q2 = np.exp(1.0j*lbd0*t)
     q3 = (1.0-lbd0*(r0-lbd1*r1))*I + (r0+lbd2*r1)*matrix0 + r1*matrix0.dot(matrix0)
-    return q1*q2*q3
+    return (q1*q2*q3).dot(v)
