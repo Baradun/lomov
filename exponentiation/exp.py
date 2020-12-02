@@ -26,22 +26,23 @@ def matrix_exp_puzzer(matrix, v, t):
     q = la.det(matrix0)
 
     def get_lambda(k):
-        solve = 2*np.sqrt(p/3)*np.cos((1/3)*np.arccos((3*q/(2*p))*np.sqrt(3./p)) - 2*np.pi*k/3)
+        solve = np.cos((1/3)*np.arccos((3*q/(2*p))*np.sqrt(3./p)) - 2*np.pi*k/3)
         return solve
 
     ls = np.sort(np.array([get_lambda(0.0), get_lambda(1.0), get_lambda(2.0)]))
-    print(ls)
-
     lbd0 = ls[0]
     lbd1 = ls[1]
     lbd2 = ls[2]
 
-    a = lbd1 - lbd0
-    b = lbd2 - lbd0
+    a = 2*np.sqrt(p/3)*(lbd1 - lbd0)
+    b = 2*np.sqrt(p/3)*(lbd2 - lbd0)
     r0 = -1*(1.0 - np.exp(1j*a*t))/a
     r1 = (-1.0/(a-b))*(-r0-((1.0 - np.exp(1j*b*t))/b))
 
     q1 = np.exp(1j*t*z)
     q2 = np.exp(1.0j*lbd0*t)
-    q3 = (1.0-lbd0*(r0-lbd1*r1))*I + (r0+lbd2*r1)*matrix0 + r1*matrix0.dot(matrix0)
-    return (q1*q2*q3).dot(v)
+    # q3 = (1.0-lbd0*(r0-lbd1*r1))*I + (r0+lbd2*r1)*matrix0 + r1*matrix0.dot(matrix0)
+    q31 = (1.0-lbd0*(r0-lbd1*r1))*I
+    q32 = (r0+lbd2*r1)*matrix0
+    q33 = r1*matrix0.dot(matrix0)
+    return (q1*q2*(q31+q32+q33)).dot(v)

@@ -43,10 +43,10 @@ def f_prof(t):
 
 section = np.arange(0, 1+step, step)
 psi = v
-
 for i, t in enumerate(section):
     omega = H0 + f_prof(t) * W
-    psi = exp(W, psi, section)
+    psi = exp(omega, psi, t)
+
 
 
 print(psi)
