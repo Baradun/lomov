@@ -1,9 +1,12 @@
+import asyncio
+from time import time
+
 import numpy as np
 from math import sqrt, sin, cos
 from exponentiation.exp import matrix_exp_puzzer as exp
 import numpy.linalg as la
 
-a = 4.35196e4/3   # 6 степень
+a = 4.35196e2/3   # 6 степень
 b = 0.030554
 H0 = a * np.array([
     [0., 0., 0.],
@@ -34,10 +37,7 @@ W = np.array([
 # print(W)
 
 
-v0 = 93536.7
-n = 10.3
 
-step = 0.001
 v1 = np.array([
     [1.0],
     [0.0],
@@ -50,37 +50,106 @@ v3 = np.array([
     [0.0],
     [0.0],
     [1.0]])
-
-e1 = exp(W, v1, 1)
-e2 = exp(W, v2, 1)
-e3 = exp(W, v3, 1)
-print(e1, '\n', "norm1", 1-la.norm(e1))
-print(e2, '\n', "norm2", 1 - la.norm(e2))
-print(e3, '\n', "norm3", 1-la.norm(e3))
+#
+# e1 = exp(W, v1, 1)
+# e2 = exp(W, v2, 1)
+# e3 = exp(W, v3, 1)
+# print(e1, '\n', "norm1", 1-la.norm(e1))
+# print(e2, '\n', "norm2", 1 - la.norm(e2))
+# print(e3, '\n', "norm3", 1-la.norm(e3))
 
 #
-#
-# V1 = np.array([[0.688242 + 0.570669j], [-0.207288 + 0.379438j], [-0.0561521 + 0.102786j]])
-# V2 = np.array([[-0.207288 + 0.379438j], [0.862174 + 0.252289j], [-0.0373356 + 0.0683423j]])
-# V3 = np.array([[-0.0561521 + 0.102786j], [-0.0373356 + 0.0683423j], [0.989886 + 0.0185132j]])
 # print(1-la.norm(V1))
 # print(1-la.norm(V2))
 # print(1-la.norm(V3))
+H1 = np.array([[ 0.51, 1.25, -4.7],
+              [1.25,-10.71, 2.74],
+              [-4.7, 2.74, 1.53]])
+H2 = np.array([[1.15, -1.27 + 0.76j, 7.41],
+               [-1.27 - 0.76j, 4.4, 5.2 - 2.6],
+            [7.41, 5.2 + 2.6j, 1.23 ]])
 
-#e1 = exp(H0 + W, v1, 1)
-#print(e1, '\n', "norm1", 1-la.norm(e1))
+H3 = np.array([[ 0.0, sqrt(2.) - 0.5j, sqrt(3.)],
+            [sqrt(2.) + 0.5j, 0.0, -0.5 - 0.5j*sqrt(3.)],
+         [sqrt(3.), -0.5 + 0.5j*sqrt(3.), -1.0 ]])
 
-def f_prof(t):
-    return v0*np.exp(-1*n*t)
+e1 = exp(H1, v1, 1)
+e2 = exp(H1, v2, 1)
+e3 = exp(H1, v3, 1)
+print(e1, '\n', "norm1", 1-la.norm(e1))
+print(e2, '\n', "norm2", 1 - la.norm(e2))
+print(e3, '\n', "norm3", 1-la.norm(e3))
+# print(e1, '\n', "norm1", 1-la.norm(e1))
 
 
-section = np.arange(0, 1+step, step)
-psi = v1
-for i, t in enumerate(section):
-    print('-'*10, f' {i} ','-'*10,)
-    omega = H0 + f_prof(t) * W
-    psi = exp(omega, psi, t) #??
-    print(psi)
-    print(la.norm(psi))
 
-print(psi)
+
+#
+def M2(H0, W, v, step):
+    v0 = 93536.7
+    n = 10.3
+
+    def f_prof(t):
+        return v0 * np.exp(-1 * n * t)
+
+    section = np.arange(0, 1+step, step)
+    Y = v
+    for i, t in enumerate(section):
+        print('-'*10, f' {i} ', '-'*10,)
+        A = step*(H0 + f_prof(t+step/2) * W)
+        Y = exp(A, Y, t)
+        print(Y)
+        print('norm ', la.norm(Y))
+
+    print('-'*10, ' final ', '-'*10,)
+    print(Y)
+    #return Y
+
+
+#M2(H0, W, v1, 0.01)
+#
+#
+#
+#
+# ###################################################
+def M4(H0, W, v, step):
+    v0 = 93536.7
+    n = 10.3
+
+    def f_prof(t):
+        return v0 * np.exp(-1 * n * t)
+
+    def commutator(A1, A2):
+        return A1.dot(A2).dot(la.matrix_power(A1, -1)).dot(la.matrix_power(A2, -1))
+
+    section = np.arange(0, 1 + step, step)
+    Y = v
+    c1 = 0.5 - np.sqrt(3)/6
+    c2 = 0.5 + np.sqrt(3)/6
+    for i, t in enumerate(section):
+        print('-'*10, f' {i} ', '-'*10,)
+        A1 = H0 + f_prof(t + c1*step) * W
+        A2 = H0 + f_prof(t + c2*step) * W
+        omega = step/2*(A1+A2) + (np.sqrt(3)/12 * step**2) * commutator(A2, A1)
+        Y = exp(omega, Y, t)
+        print(Y)
+        print('norm ', la.norm(Y))
+
+    print('-'*10, ' final ', '-'*10,)
+    print(Y)
+    return Y
+#
+M4(H0, W, v1, 0.0001)
+# t = time()
+# matrM2 = M2(H0, W, v1, 0.00001)
+# matrM4 = M4(H0, W, v1, 0.00001)
+#
+# print('#' * 80)
+# print('M2:\n', matrM2)
+# print('norm ', la.norm(matrM2))
+#
+# print('M4:\n', matrM4)
+# print('norm ', la.norm(matrM4))
+# print('delta:\n', matrM2 - matrM4)
+# print('t:', time() - t)
+
