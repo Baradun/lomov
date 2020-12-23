@@ -120,7 +120,7 @@ def M4(H0, W, v, step):
         return v0 * np.exp(-1 * n * t)
 
     def commutator(A1, A2):
-        return A1.dot(A2).dot(la.matrix_power(A1, -1)).dot(la.matrix_power(A2, -1))
+        return A1.dot(A2) - A2.dot(A1)
 
     section = np.arange(0, 1 + step, step)
     Y = v
@@ -153,3 +153,64 @@ M4(H0, W, v1, 0.0001)
 # print('delta:\n', matrM2 - matrM4)
 # print('t:', time() - t)
 
+def M6(H0, W, v, step):
+    v0 = 93536.7
+    n = 10.3
+
+    def f_prof(t):
+        return v0 * np.exp(-1 * n * t)
+
+    def commutator(A1, A2):
+        return A1.dot(A2) - A2.dot(A1)
+
+    section = np.arange(0, 1 + step, step)
+    Y = v
+    c1 = 0.5 - np.sqrt(15)/10
+    c2 = 0.5
+    c3 = 0.5 + np.sqrt(15)/10
+    for i, t in enumerate(section):
+        print('-'*10, f' {i} ', '-'*10,)
+        A1 = H0 + f_prof(t + c1 * step) * W
+        A2 = H0 + f_prof(t + c2 * step) * W
+        A3 = H0 + f_prof(t + c3 * step) * W
+        B1 = step * A2
+        B2 = (np.sqrt(15)*step/3)*(A3-A1)
+        B3 = (10*step/3)*(A3 - 2*A2 + A1)
+        omega = B1 + 0.5*B3 + 1/240*commutator(-20*B1-B3+commutator(B1, B2), B2 - 1/60*commutator(B1, 2*B3+ commutator(B1, B2)))
+        Y = exp(omega, Y, t)
+        print(Y)
+        print('norm ', la.norm(Y))
+
+    print('-'*10, ' final ', '-'*10,)
+    print(Y)
+    return Y
+
+#M6(H0, W, v1, 0.0001)
+################################################################
+
+
+def Cf4(H0, W, v, step):
+    v0 = 93536.7
+    n = 10.3
+
+    def f_prof(t):
+        return v0 * np.exp(-1 * n * t)
+
+    section = np.arange(0, 1 + step, step)
+    Y = v
+    c1 = 0.5 - np.sqrt(3) / 6
+    c2 = 0.5 + np.sqrt(3) / 6
+    alfa1 = (3 - 2 * np.sqrt(3)) / 12
+    alfa2 = (3 + 2 * np.sqrt(3)) / 12
+    for i, t in enumerate(section):
+        print('-'*10, f' {i} ', '-'*10,)
+        A1 = H0 + f_prof(t + c1 * step) * W
+        A2 = H0 + f_prof(t + c2 * step) * W
+        omega = 123 #???????????????????
+        Y = exp(omega, Y, t)
+        print(Y)
+        print('norm ', la.norm(Y))
+
+    print('-'*10, ' final ', '-'*10,)
+    print(Y)
+    return Y
