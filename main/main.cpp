@@ -2,19 +2,19 @@
 #include <iostream>
 #include <vector>
 
-#include <math.h>
-
+#include <cmath>
 #include </usr/include/eigen3/Eigen/Dense>
 
 using namespace std;
+using namespace std::complex_literals;
 //using namespace Eigen;
 
 double f_prof( double t, double v0, double n) {
-    return v0 * exp(-1 * n * t);
+    return v0 * exp(-n * t);
 }
 
-double get_lambda(double k, complex<double> p, complex<double> q){
-    return cos((1.0/3.0) * acos((-3.0*q/(2.0*p))*sqrt(3.0/p)) - 2.0*M_PI*k/3.0);
+double get_lambda(double k, double p, double q){
+    return cos((1.0/3.0) * acos((3.0*q/(2.0*p))*sqrt(3.0/p)) - 2.0*M_PI*k/3.0);
 }
 
 vector<double> get_section(double start, double end, double step){
@@ -31,7 +31,7 @@ Eigen::Matrix <std::complex<double>, 3, 1> matrix_exp_puzzer(
     Eigen::Matrix <std::complex<double>, 3, 1> v,
     double t)
 {
-    Eigen::Matrix <std::complex<double>, 3, 3> I;
+    Eigen::Matrix <double, 3, 3> I;
     I << 
     1.0, 0.0, 0.0,
     0.0, 1.0, 0.0,
@@ -39,7 +39,7 @@ Eigen::Matrix <std::complex<double>, 3, 1> matrix_exp_puzzer(
     double z = matrix.trace()/3.0;
     Eigen::Matrix <double, 3, 3> matrix0 = matrix - z * I;
     
-    double p = (matrix0.pow(2)).trace() * 0.5; 
+    double p = (matrix0*matrix0).trace() * 0.5; 
     double q = matrix0.determinant();  
 
     auto lbd0 = get_lambda(0.0, p, q);
@@ -55,10 +55,10 @@ Eigen::Matrix <std::complex<double>, 3, 1> matrix_exp_puzzer(
     lbd2 *= 2.0*sqrt(p/3.0);
 
     std::complex <double> j1 ( 0.0 , 1.0 );
-    double r0 = -1.0*(1.0 - exp(j1*a*t))/a;
-    double r1 = (-1.0/c)*(-r0-((1.0 - exp(j1*b*t))/b));
+    std::complex <double> r0 = -1.0*(1.0 - exp(j1*a*t))/a;
+    std::complex <double> r1 = (-1.0/c)*(-r0-((1.0 - exp(j1*b*t))/b));
 
-    Eigen::Matrix <std::complex<double>, 3, 1> q1 = (1 - lbd0 * (r0 - lbd1 * r1)) * v;
+    Eigen::Matrix <std::complex<double>, 3, 1> q1 = (1.0 - lbd0 * (r0 - lbd1 * r1)) * v;
     Eigen::Matrix <std::complex<double>, 3, 1> psi = matrix0*v;
     Eigen::Matrix <std::complex<double>, 3, 1> q2 = (r0 + lbd2 * r1) * psi;
     Eigen::Matrix <std::complex<double>, 3, 1> q3 = r1 * matrix0*psi;
@@ -68,28 +68,23 @@ Eigen::Matrix <std::complex<double>, 3, 1> matrix_exp_puzzer(
 
 
 
-Eigen::Matrix<std::complex<double>, 3, 3> M2(
-    Eigen::Matrix <double, 3, 3> H0,
-    Eigen::Matrix <double, 3, 3> W,
-    Eigen::Matrix <std::complex<double>, 3, 1> v,
+void M2(
+    Eigen::Matrix <double, 3, 3>& H0,
+    Eigen::Matrix <double, 3, 3>& W,
+    Eigen::Matrix <std::complex<double>, 3, 1>& v,
     double v0,
     double n,
     double start,
     double stop,
     double step)
 {
-    // Eigen::Matrix <std::complex<double>, 3, 3> matrixA;
-    // matrixA.setZero();
-    // matrixA(2,1) = std::complex <double> ( 4.0 , 5.0 );
     auto section = get_section(start, stop, step);
     Eigen::Matrix <double, 3, 3> A;
     
     for(double t: section){
-        A = step*(H0 + f_prof(t +step / 2.0, v0, n) * W); //по адресу
+        A = step*(H0 + f_prof(t +step / 2.0, v0, n) * W);
         v = matrix_exp_puzzer(A, v, t);
     }
-    
-    return v;
 }
 
 
@@ -98,11 +93,11 @@ Eigen::Matrix<std::complex<double>, 3, 3> M2(
 int main() {
     // ----- test vectors -----
     Eigen::Matrix <std::complex<double>, 3, 1> v1;
-    v1(0, 0) = 1;
+    v1(0, 0) = 1.0;
     Eigen::Matrix <std::complex<double>, 3, 1> v2;
-    v2(1, 0) = 1;
+    v2(1, 0) = 1.0;
     Eigen::Matrix <std::complex<double>, 3, 1> v3; 
-    v3(2, 0) = 1;
+    v3(2, 0) = 1.0;
     // std::cout << v1 <<std::endl<<std::endl;
     // std::cout << v2 <<std::endl<<std::endl;
     // std::cout << v3 <<std::endl<<std::endl;
@@ -129,9 +124,9 @@ int main() {
     // double s23 = std::sqrt(0.437);
     double s13 = std::sqrt(0.0234);
 
-    double c12 = std::sqrt(1 - std::pow(s12, 2));
+    double c12 = std::sqrt(1.0 - std::pow(s12, 2));
     // double c23 = std::sqrt(1 - std::pow(s23, 2));
-    double c13 = std::sqrt(1 - std::pow(s13, 2));
+    double c13 = std::sqrt(1.0 - std::pow(s13, 2));
     
     Eigen::Matrix <double, 3, 3> W;
     W  << 
@@ -150,7 +145,8 @@ int main() {
 
     double start = 0.0;
     double stop = 1.0;
-    double step = 0.1;
-    std::cout << M2(H0, W, v1, v0, n, start, stop, step) << std::endl; //по адресу передать 
+    double step = 0.001;
+    M2(H0, W, v1, v0, n, start, stop, step);
+    std::cout << 1.0 - v1.norm() << std::endl; 
     return 0;
 }

@@ -102,8 +102,8 @@ def M2(H0, W, v, step):
         print(Y)
         print('norm ', 1-la.norm(Y))
 
-    print('-'*10, ' final ', '-'*10,)
-    print(Y)
+    # print('-'*10, ' final ', '-'*10,)
+    # print(Y)
     return Y
 
 
