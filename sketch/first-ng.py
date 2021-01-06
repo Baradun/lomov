@@ -95,14 +95,15 @@ def M2(H0, W, v, step):
     section = np.arange(0.1, 1+step, step)
     Y = v
     for i, t in enumerate(section):
-        #print('-'*10, f' {i} ', '-'*10,)
+        print('-'*10, f' {i} ', '-'*10,)
         A = step*(H0 + f_prof(t+step/2) * W)
+        print(A)
         Y = exp(A, Y, t)
-        #print(Y)
-        #print('norm ', 1-la.norm(Y))
+        print(Y)
+        print('norm ', 1-la.norm(Y))
 
-    #print('-'*10, ' final ', '-'*10,)
-    #print(Y)
+    print('-'*10, ' final ', '-'*10,)
+    print(Y)
     return Y
 
 
@@ -185,13 +186,13 @@ matrM2 = M2(H0, W, v1, step)
 
 print('M2:\n', matrM2)
 print('norm ', 1-la.norm(matrM2))
-matrM4 = M4(H0, W, v1, step)
-print('M4:\n', matrM4)
-print('norm ', 1-la.norm(matrM4))
-matrM6 = M6(H0, W, v1, step)
-print('M6:\n', matrM6)
-print('norm ', 1-la.norm(matrM6))
-print('t:', time() - t)
+# matrM4 = M4(H0, W, v1, step)
+# print('M4:\n', matrM4)
+# print('norm ', 1-la.norm(matrM4))
+# matrM6 = M6(H0, W, v1, step)
+# print('M6:\n', matrM6)
+# print('norm ', 1-la.norm(matrM6))
+# print('t:', time() - t)
 
 def Cf4(H0, W, v, step):
     v0 = 93536.7

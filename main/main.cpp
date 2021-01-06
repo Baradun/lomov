@@ -27,7 +27,7 @@ vector<double> get_section(double start, double end, double step){
 } 
 
 Eigen::Matrix <std::complex<double>, 3, 1> matrix_exp_puzzer(
-    Eigen::Matrix <std::complex<double>, 3, 3> matrix,
+    Eigen::Matrix <double, 3, 3> matrix,
     Eigen::Matrix <std::complex<double>, 3, 1> v,
     double t)
 {
@@ -36,19 +36,19 @@ Eigen::Matrix <std::complex<double>, 3, 1> matrix_exp_puzzer(
     1.0, 0.0, 0.0,
     0.0, 1.0, 0.0,
     0.0, 0.0, 1.0;
-    complex<double> z = matrix.trace()/3.0;
-    Eigen::Matrix <std::complex<double>, 3, 3> matrix0 = matrix - z * I;
+    double z = matrix.trace()/3.0;
+    Eigen::Matrix <double, 3, 3> matrix0 = matrix - z * I;
     
-    complex<double> p = (matrix0*matrix0).trace() * 0.5; //error 
-    complex<double> q = matrix.determinant();
+    double p = (matrix0.pow(2)).trace() * 0.5; 
+    double q = matrix0.determinant();  
 
     auto lbd0 = get_lambda(0.0, p, q);
     auto lbd1 = get_lambda(1.0, p, q);
     auto lbd2 = get_lambda(2.0, p, q);
 
-    complex<double> a = 2.0*sqrt(p/3.0)*(lbd1 - lbd0);
-    complex<double> b = 2.0*sqrt(p/3.0)*(lbd2 - lbd0);
-    complex<double> c = 2.0*sqrt(p/3.0)*(lbd1 - lbd2);
+    double a = 2.0*sqrt(p/3.0)*(lbd1 - lbd0);
+    double b = 2.0*sqrt(p/3.0)*(lbd2 - lbd0);
+    double c = 2.0*sqrt(p/3.0)*(lbd1 - lbd2);
 
     lbd0 *= 2.0*sqrt(p/3.0);
     lbd1 *= 2.0*sqrt(p/3.0);
@@ -69,8 +69,8 @@ Eigen::Matrix <std::complex<double>, 3, 1> matrix_exp_puzzer(
 
 
 Eigen::Matrix<std::complex<double>, 3, 3> M2(
-    Eigen::Matrix <std::complex<double>, 3, 3> H0,
-    Eigen::Matrix <std::complex<double>, 3, 3> W,
+    Eigen::Matrix <double, 3, 3> H0,
+    Eigen::Matrix <double, 3, 3> W,
     Eigen::Matrix <std::complex<double>, 3, 1> v,
     double v0,
     double n,
@@ -81,11 +81,11 @@ Eigen::Matrix<std::complex<double>, 3, 3> M2(
     // Eigen::Matrix <std::complex<double>, 3, 3> matrixA;
     // matrixA.setZero();
     // matrixA(2,1) = std::complex <double> ( 4.0 , 5.0 );
-    auto section = get_section(0.0, 1.0, 0.1);
-    Eigen::Matrix <std::complex<double>, 3, 3> A;
+    auto section = get_section(start, stop, step);
+    Eigen::Matrix <double, 3, 3> A;
     
     for(double t: section){
-        A = step*step*(H0 + f_prof(t +step / 2.0, v0, n) * W); //по адресу
+        A = step*(H0 + f_prof(t +step / 2.0, v0, n) * W); //по адресу
         v = matrix_exp_puzzer(A, v, t);
     }
     
@@ -112,7 +112,7 @@ int main() {
 
 
     // ----- H0 -----
-    Eigen::Matrix <std::complex<double>, 3, 3> H0;
+    Eigen::Matrix <double, 3, 3> H0;
     H0.setZero();
     double a = 4.35196e6 / 3.0;
     double b = 0.030554;
@@ -133,7 +133,7 @@ int main() {
     // double c23 = std::sqrt(1 - std::pow(s23, 2));
     double c13 = std::sqrt(1 - std::pow(s13, 2));
     
-    Eigen::Matrix <std::complex<double>, 3, 3> W;
+    Eigen::Matrix <double, 3, 3> W;
     W  << 
     pow(c13, 2) * pow(c12, 2),   c12 * s12 * pow(c13, 2),    c12 * c13 * s13,
     c12 * s12 * pow(c13, 2),     pow(s12, 2) * pow(c13, 2),  s12 * c13 * s13,
