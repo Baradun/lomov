@@ -76,9 +76,9 @@ H3 = np.array([[ 0.0, sqrt(2.) - 0.5j, sqrt(3.)],
 e1 = exp(H1, v1, 1)
 e2 = exp(H1, v2, 1)
 e3 = exp(H1, v3, 1)
-print(e1, '\n', "norm1", 1-la.norm(e1))
-print(e2, '\n', "norm2", 1 - la.norm(e2))
-print(e3, '\n', "norm3", 1-la.norm(e3))
+# print(e1, '\n', "norm1", 1-la.norm(e1))
+# print(e2, '\n', "norm2", 1 - la.norm(e2))
+# print(e3, '\n', "norm3", 1-la.norm(e3))
 # print(e1, '\n', "norm1", 1-la.norm(e1))
 
 
@@ -92,21 +92,21 @@ def M2(H0, W, v, step):
     def f_prof(t):
         return v0 * np.exp(-1 * n * t)
 
-    section = np.arange(0, 1+step, step)
+    section = np.arange(0.1, 1+step, step)
     Y = v
     for i, t in enumerate(section):
-        print('-'*10, f' {i} ', '-'*10,)
+        #print('-'*10, f' {i} ', '-'*10,)
         A = step*(H0 + f_prof(t+step/2) * W)
         Y = exp(A, Y, t)
-        print(Y)
-        print('norm ', la.norm(Y))
+        #print(Y)
+        #print('norm ', 1-la.norm(Y))
 
-    print('-'*10, ' final ', '-'*10,)
-    print(Y)
-    #return Y
+    #print('-'*10, ' final ', '-'*10,)
+    #print(Y)
+    return Y
 
 
-#M2(H0, W, v1, 0.01)
+#M2(H0, W, v1, 0.00001)
 #
 #
 #
@@ -122,36 +122,25 @@ def M4(H0, W, v, step):
     def commutator(A1, A2):
         return A1.dot(A2) - A2.dot(A1)
 
-    section = np.arange(0, 1 + step, step)
+    section = np.arange(0.1, 1 + step, step)
     Y = v
     c1 = 0.5 - np.sqrt(3)/6
     c2 = 0.5 + np.sqrt(3)/6
     for i, t in enumerate(section):
-        print('-'*10, f' {i} ', '-'*10,)
+        #print('-'*10, f' {i} ', '-'*10,)
         A1 = H0 + f_prof(t + c1*step) * W
         A2 = H0 + f_prof(t + c2*step) * W
         omega = step/2*(A1+A2) + (np.sqrt(3)/12 * step**2) * commutator(A2, A1)
         Y = exp(omega, Y, t)
-        print(Y)
-        print('norm ', la.norm(Y))
+        #print(Y)
+        #print('norm ', 1-la.norm(Y))
 
-    print('-'*10, ' final ', '-'*10,)
-    print(Y)
+    #print('-'*10, ' final ', '-'*10,)
+    #print(Y)
     return Y
 #
-M4(H0, W, v1, 0.0001)
-# t = time()
-# matrM2 = M2(H0, W, v1, 0.00001)
-# matrM4 = M4(H0, W, v1, 0.00001)
-#
-# print('#' * 80)
-# print('M2:\n', matrM2)
-# print('norm ', la.norm(matrM2))
-#
-# print('M4:\n', matrM4)
-# print('norm ', la.norm(matrM4))
-# print('delta:\n', matrM2 - matrM4)
-# print('t:', time() - t)
+#M4(H0, W, v1,  0.00001)
+
 
 def M6(H0, W, v, step):
     v0 = 93536.7
@@ -169,7 +158,7 @@ def M6(H0, W, v, step):
     c2 = 0.5
     c3 = 0.5 + np.sqrt(15)/10
     for i, t in enumerate(section):
-        print('-'*10, f' {i} ', '-'*10,)
+        #print('-'*10, f' {i} ', '-'*10,)
         A1 = H0 + f_prof(t + c1 * step) * W
         A2 = H0 + f_prof(t + c2 * step) * W
         A3 = H0 + f_prof(t + c3 * step) * W
@@ -178,16 +167,31 @@ def M6(H0, W, v, step):
         B3 = (10*step/3)*(A3 - 2*A2 + A1)
         omega = B1 + 0.5*B3 + 1/240*commutator(-20*B1-B3+commutator(B1, B2), B2 - 1/60*commutator(B1, 2*B3+ commutator(B1, B2)))
         Y = exp(omega, Y, t)
-        print(Y)
-        print('norm ', la.norm(Y))
+        #print(Y)
+        #print('norm ', la.norm(Y))
 
-    print('-'*10, ' final ', '-'*10,)
-    print(Y)
+    #print('-'*10, ' final ', '-'*10,)
+    #print(Y)
     return Y
 
 #M6(H0, W, v1, 0.0001)
 ################################################################
+step = 0.1
+t = time()
+print('step: ', step)
+matrM2 = M2(H0, W, v1, step)
 
+
+
+print('M2:\n', matrM2)
+print('norm ', 1-la.norm(matrM2))
+matrM4 = M4(H0, W, v1, step)
+print('M4:\n', matrM4)
+print('norm ', 1-la.norm(matrM4))
+matrM6 = M6(H0, W, v1, step)
+print('M6:\n', matrM6)
+print('norm ', 1-la.norm(matrM6))
+print('t:', time() - t)
 
 def Cf4(H0, W, v, step):
     v0 = 93536.7
