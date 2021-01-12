@@ -6,7 +6,7 @@ from math import sqrt, sin, cos
 from exponentiation.exp import matrix_exp_puzzer as exp
 import numpy.linalg as la
 
-a = 4.35196e2/3   # 6 степень
+a = 4.35196e6/3   # 6 степень
 b = 0.030554
 H0 = a * np.array([
     [0., 0., 0.],
