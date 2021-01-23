@@ -14,8 +14,6 @@ using std::function;
 using Eigen::Matrix;
 
 class Methods;
-void print_more_info(Matrix <complex<double>, 3, 1> v, Methods &m_class);
-
 
 double f_prof( double t, double v0, double n) {
     return v0 * exp(-n * t);
@@ -99,7 +97,8 @@ public:
         for(double t: section){
             A = -step*(H0 + prof(t + step/2.0, v0, n) * W);
             Y = matrix_exp_puzzer(A, Y, -1.0);
-            print_more_info(v, *this);
+            std::cout << "--------------------"<< t <<"-------------------"<< std::endl;
+            print_more_info(Y, *this);
         }
         return Y;
     }
@@ -116,7 +115,9 @@ public:
             A1 = H0 + prof(t + c1*step, v0, n) * W;
             A2 = H0 + prof(t + c2*step, v0, n) * W;
             omega = (step/2.0)*(A1+A2) + (sqrt(3.0)/12.0 * step*step) * calc_commutator(A2, A1);
-            Y = matrix_exp_puzzer(omega, Y, 1.0);
+            Y = matrix_exp_puzzer(omega, Y, -1.0);
+            std::cout << "--------------------"<< t <<"-------------------"<< std::endl;
+            print_more_info(Y, *this);
         }
         
         return Y;
@@ -152,6 +153,23 @@ public:
             Y = matrix_exp_puzzer(omega, Y, 1.0);
         }
         return Y;
+    }
+
+    void print_more_info(Matrix <complex<double>, 3, 1> v, Methods &m_class){
+        //std::cout << "H0" << m_class.H0 << "\n W=" << m_class.W <<std::endl;
+        //std::cout << "---------------------------------------"<< std::endl;
+        std::cout << "p=" << m_class.p << " q=" << m_class.q <<std::endl;
+        std::cout << "lb0=" << m_class.lbd0 << " lbd1=" << m_class.lbd1 << " lbd2=" << m_class.lbd2 <<std::endl;
+        std::cout << "a=" << m_class.a << " b=" << m_class.b << " c=" << m_class.c <<std::endl;
+        
+        std::cout << v << std::endl;
+        std::cout << "1-norm "<<1.0 - v.norm() << std::endl;
+        std::cout << "norm0 " << sqrt(v(0,0).real()*v(0,0).real() + v(0,0).imag()*v(0,0).imag()) << std::endl;
+        std::cout << "norm1 " << sqrt(v(1,0).real() * v(1,0).real() + v(1,0).imag()*v(1,0).imag()) << std::endl;
+        std::cout << "norm2 " << sqrt(v(2,0).real() * v(2,0).real() + v(2,0).imag()*v(2,0).imag()) << std::endl;
+        std::cout << "arg0 " << std::arg(v(0,0)) << std::endl;
+        std::cout << "arg1 " << std::arg(v(1,0)) << std::endl;
+        std::cout << "arg2 " << std::arg(v(2,0)) << std::endl;
     }
 
 
@@ -238,22 +256,7 @@ private:
 };
 
 
-void print_more_info(Matrix <complex<double>, 3, 1> v, Methods &m_class){
-    //std::cout << "H0" << m_class.H0 << "\n W=" << m_class.W <<std::endl;
-    std::cout << "a=" << m_class.a << " b=" << m_class.b << " c=" << m_class.c <<std::endl;
-    std::cout << "lb0=" << m_class.lbd0 << " lbd1=" << m_class.lbd1 << " lbd2=" << m_class.lbd2 <<std::endl;
-    std::cout << "p=" << m_class.p << " q=" << m_class.q <<std::endl;
-    
-    std::cout << "---------------------------------------"<< std::endl;
-    std::cout << v << std::endl;
-    std::cout << "1-norm "<<1.0 - v.norm() << std::endl;
-    std::cout << "norm0 " << sqrt(v(0,0).real()*v(0,0).real() + v(0,0).imag()*v(0,0).imag()) << std::endl;
-    std::cout << "norm1 " << sqrt(v(1,0).real() * v(1,0).real() + v(1,0).imag()*v(1,0).imag()) << std::endl;
-    std::cout << "norm2 " << sqrt(v(2,0).real() * v(2,0).real() + v(2,0).imag()*v(2,0).imag()) << std::endl;
-    std::cout << "arg0 " << std::abs(v(0, 0)) << std::endl;
-    std::cout << "arg1 " << std::abs(v(1, 0)) << std::endl;
-    std::cout << "arg2 " << std::abs(v(2, 0)) << std::endl;
-}
+
 
 int main() {
     
@@ -294,12 +297,21 @@ int main() {
     double v0 = 93536.7;
     double n = 10.3;
 
+    //
+    H0 = H0 + W;
+    double start = 0.1;
+    double end = 0.2;
+    double step = 0.01;
 
-
-
-    Methods test = Methods(H0+W, W, v1, v0, n, f_prof, 0.1, 0.2, 0.001);
+    Methods test = Methods(H0, W, v1, v0, n, f_prof, start, end, step);
+    std::cout << "H0:"<< H0 << std::endl;
+    std::cout << "W:" << W<< std::endl;
+    std::cout << "v:"<< v1 << std::endl;
+    std::cout << "start="<< start << " end="<< end << " step="<< step << std::endl;
     auto v = test.M2();
-    print_more_info(v, test);
+    
+    std::cout << "------------------ final ---------------------"<< std::endl;
+    test.print_more_info(v, test);
 
     //std::cout << 1.0 - test.M4().norm() << std::endl;
     //std::cout << 1.0 - test.M6().norm() << std::endl;

@@ -6,6 +6,19 @@ from math import sqrt, sin, cos
 from exponentiation.exp import matrix_exp_puzzer as exp
 import numpy.linalg as la
 
+
+def print_more_info(matr):
+    print(matr)
+    print('1-norm ', 1-la.norm(matr))
+    print('norm0', la.norm(matr[0]))
+    print('norm1', la.norm(matr[1]))
+    print('norm2', la.norm(matr[2]))
+    print('angle0', np.angle(matr[0]))
+    print('angle1', np.angle(matr[1]))
+    print('angle2', np.angle(matr[2]))
+
+
+
 a = 4.35196e6/3   # 6 степень
 b = 0.030554
 H0 = a * np.array([
@@ -84,6 +97,11 @@ H3 = np.array([[ 0.0, sqrt(2.) - 0.5j, sqrt(3.)],
 def M2(H0, W, v, start, stop, step):
     v0 = 93536.7
     n = 10.3
+    
+    print('H0: ', H0)
+    print('W: ', W)
+    print('v:', v)
+    print('start=', start, ' end=', stop, ' step=', step)
 
     def f_prof(t):
         return v0 * np.exp(-1 * n * t)
@@ -94,8 +112,8 @@ def M2(H0, W, v, start, stop, step):
         print("---------",i ,"---------", t, "----------")
         A = -step*(H0 + f_prof(t+step/2) * W)
 
-        Y = exp(A, Y, 1.0)
-
+        Y = exp(A, Y, -1.0)
+        print_more_info(Y)
 
     return Y
 
@@ -118,11 +136,11 @@ def M4(H0, W, v, start, stop, step):
     c1 = 0.5 - np.sqrt(3)/6
     c2 = 0.5 + np.sqrt(3)/6
     for i, t in enumerate(section):
-        #print('-'*10, f' {i} ', '-'*10,)
+        print("---------",i ,"---------", t, "----------")
         A1 = H0 + f_prof(t + c1*step) * W
         A2 = H0 + f_prof(t + c2*step) * W
         omega = step/2*(A1+A2) + (np.sqrt(3)/12 * step**2) * commutator(A2, A1)
-        Y = exp(omega, Y, 1.0)
+        Y = exp(omega, Y, -1.0)
         #print(Y)
         #print('norm ', 1-la.norm(Y))
 
@@ -167,30 +185,22 @@ def M6(H0, W, v, start, stop, step):
 
 #M6(H0, W, v1, 0.0001)
 ################################################################
-def print_more_info(matr):
-    print(matr)
-    print('1-norm ', 1-la.norm(matr))
-    print('norm0', la.norm(matr[0]))
-    print('norm1', la.norm(matr[1]))
-    print('norm2', la.norm(matr[2]))
-    print('angle0', np.angle(matr[0]))
-    print('angle1', np.angle(matr[1]))
-    print('angle2', np.angle(matr[2]))
 
 
 
 
 
-step = 0.001
+step = 0.01
 start = 0.1
 stop = 0.2
 t = time()
 # print('step: ', step)
-matrM2 = M2(H0+W, W, v1, start, stop, step)
-print_more_info(matrM2)
+#matrM2 = M2(H0+W, W, v1, start, stop, step)
+print('#'*25, ' final ', '#'*25)
+#print_more_info(matrM2)
 
-# matrM4 = M4(H0+W, W, v1, start, stop, step)
-# print_more_info(matrM4)
+matrM4 = M4(H0+W, W, v1, start, stop, step)
+print_more_info(matrM4)
 
 # matrM6 = M6(H0+W, W, v1, start, stop, step)
 

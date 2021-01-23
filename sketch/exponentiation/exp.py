@@ -86,6 +86,5 @@ def matrix_exp_puzzer(matrix, v, t):
     # print('q2', q2)
     # print('q3', q3)
     # print('psi', psi)
-    print('#' * 50)
     return np.exp(1j * t * z) * np.exp(1j * lbd0 * t) * (q1 + q2 + q3)
 
