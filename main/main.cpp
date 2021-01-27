@@ -23,14 +23,14 @@ double f_prof( double t, double v0, double n) {
 class Methods{
 
 public:
-    double p;
-    double q;
-    double lbd0;
-    double lbd1;
-    double lbd2;
-    double a;
-    double b;
-    double c;
+    complex<double> p;
+    complex<double> q;
+    complex<double> lbd0;
+    complex<double> lbd1;
+    complex<double> lbd2;
+    complex<double> a;
+    complex<double> b;
+    complex<double> c;
 
     Matrix <double, 3, 3> H0;
     Matrix <double, 3, 3> W;
@@ -108,14 +108,15 @@ public:
         auto Y = v;
         double c1 = 0.5 - sqrt(3.0)/6.0;
         double c2 = 0.5 + sqrt(3.0)/6.0;
-        Matrix <double, 3, 3> A1;
-        Matrix <double, 3, 3> A2;
-        Matrix <double, 3, 3> omega;
+        Matrix <complex<double>, 3, 3> A1;
+        Matrix <complex<double>, 3, 3> A2;
+        Matrix <complex<double>, 3, 3> omega;
+        complex <double> j1 ( 0.0 , 1.0 );
         for(double t: section){
             A1 = H0 + prof(t + c1*step, v0, n) * W;
             A2 = H0 + prof(t + c2*step, v0, n) * W;
-            omega = (step/2.0)*(A1+A2) + (sqrt(3.0)/12.0 * step*step) * calc_commutator(A2, A1);
-            Y = matrix_exp_puzzer(omega, Y, -1.0);
+            omega = (-step/2.0)*(A1+A2) + j1*(sqrt(3.0)/12.0 * step*step) * calc_commutator(A2, A1);
+            Y = matrix_exp_puzzer(omega, Y, 1.0);
             std::cout << "--------------------"<< t <<"-------------------"<< std::endl;
             print_more_info(Y, *this);
         }
@@ -124,36 +125,36 @@ public:
     }
 
 
-    Matrix <complex<double>, 3, 1> M6(){
-        auto Y = v;
-        double c1 = 0.5 - sqrt(15.0)/10.0;
-        double c2 = 0.5;
-        double c3 = 0.5 + sqrt(15.0)/10.0;
+    // Matrix <complex<double>, 3, 1> M6(){
+    //     auto Y = v;
+    //     double c1 = 0.5 - sqrt(15.0)/10.0;
+    //     double c2 = 0.5;
+    //     double c3 = 0.5 + sqrt(15.0)/10.0;
         
-        Matrix <double, 3, 3> A1;
-        Matrix <double, 3, 3> A2;
-        Matrix <double, 3, 3> A3;
+    //     Matrix <double, 3, 3> A1;
+    //     Matrix <double, 3, 3> A2;
+    //     Matrix <double, 3, 3> A3;
         
-        Matrix <double, 3, 3> B1;
-        Matrix <double, 3, 3> B2;
-        Matrix <double, 3, 3> B3;
+    //     Matrix <double, 3, 3> B1;
+    //     Matrix <double, 3, 3> B2;
+    //     Matrix <double, 3, 3> B3;
         
-        Matrix <double, 3, 3> omega;
+    //     Matrix <double, 3, 3> omega;
         
-        for(double t: section){
-            A1 = H0 + prof(t + c1 * step, v0, n) * W;
-            A2 = H0 + prof(t + c2 * step, v0, n) * W;
-            A3 = H0 + prof(t + c3 * step, v0, n) * W;
+    //     for(double t: section){
+    //         A1 = H0 + prof(t + c1 * step, v0, n) * W;
+    //         A2 = H0 + prof(t + c2 * step, v0, n) * W;
+    //         A3 = H0 + prof(t + c3 * step, v0, n) * W;
             
-            B1 = step * A2;
-            B2 = (sqrt(15.0)*step/3.0)*(A3-A1);
-            B3 = (10.0*step/3.0)*(A3 - 2.0*A2 + A1);
+    //         B1 = step * A2;
+    //         B2 = (sqrt(15.0)*step/3.0)*(A3-A1);
+    //         B3 = (10.0*step/3.0)*(A3 - 2.0*A2 + A1);
             
-            omega = B1 + 0.5*B3 + 1.0/240.0 *calc_commutator(-20.0*B1-B3+calc_commutator(B1, B2), B2 - 1.0/60.0*calc_commutator(B1, 2.0*B3+ calc_commutator(B1, B2)));
-            Y = matrix_exp_puzzer(omega, Y, 1.0);
-        }
-        return Y;
-    }
+    //         omega = B1 + 0.5*B3 + 1.0/240.0 *calc_commutator(-20.0*B1-B3+calc_commutator(B1, B2), B2 - 1.0/60.0*calc_commutator(B1, 2.0*B3+ calc_commutator(B1, B2)));
+    //         Y = matrix_exp_puzzer(omega, Y, 1.0);
+    //     }
+    //     return Y;
+    // }
 
     void print_more_info(Matrix <complex<double>, 3, 1> v, Methods &m_class){
         //std::cout << "H0" << m_class.H0 << "\n W=" << m_class.W <<std::endl;
@@ -185,12 +186,12 @@ private:
     function<double(double, double, double)> prof; //??
     
 
-    double calc_lambda(double k, double p, double q){ 
+    complex<double> calc_lambda(double k, complex<double> p, complex<double> q){ 
         return cos((1.0/3.0) * acos((3.0*q/(2.0*p))*sqrt(3.0/p)) - 2.0*M_PI*k/3.0);
     }
     
     Matrix <complex<double>, 3, 1> matrix_exp_puzzer(
-        Matrix <double, 3, 3> matrix,
+        Matrix <complex<double>, 3, 3> matrix,
         Matrix <complex<double>, 3, 1> vectr,
         double t)
     {
@@ -199,19 +200,19 @@ private:
         1.0, 0.0, 0.0,
         0.0, 1.0, 0.0,
         0.0, 0.0, 1.0;
-        double z = matrix.trace()/3.0;
-        Matrix <double, 3, 3> matrix0 = matrix - z * I;
+        complex<double> z = matrix.trace()/3.0;
+        Matrix <complex<double>, 3, 3> matrix0 = matrix - z * I;
         
-        double p = (matrix0*matrix0).trace() * 0.5; 
-        double q = matrix0.determinant();
+        complex<double> p = (matrix0*matrix0).trace() * 0.5; 
+        complex<double> q = matrix0.determinant();
         
         auto lbd0 = calc_lambda(0.0, p, q);
         auto lbd1 = calc_lambda(1.0, p, q);
         auto lbd2 = calc_lambda(2.0, p, q);
 
-        double a = lbd1 - lbd0;
-        double b = lbd2 - lbd0;
-        double c = lbd1 - lbd2;
+        complex<double> a = lbd1 - lbd0;
+        complex<double> b = lbd2 - lbd0;
+        complex<double> c = lbd1 - lbd2;
 
         lbd0 *= 2.0*sqrt(p/3.0);
         lbd1 *= 2.0*sqrt(p/3.0);
@@ -246,9 +247,9 @@ private:
         return exp(j1 * t * z) * exp(j1 * lbd0 * t) * (q1 + q2 + q3);
     }
 
-    Matrix <double, 3, 3> calc_commutator(
-        Matrix <double, 3, 3> A,
-        Matrix <double, 3, 3> B
+    Matrix <complex<double>, 3, 3> calc_commutator(
+        Matrix <complex<double>, 3, 3> A,
+        Matrix <complex<double>, 3, 3> B
     ){
         return A*B - B*A;
     }
@@ -258,8 +259,11 @@ private:
 
 
 
-int main() {
+int main(int argc, char* argv[]) {
     
+
+
+
     // ----- test vectors -----
     Matrix <std::complex<double>, 3, 1> v1;
     v1(0, 0) = 1.0;
@@ -299,16 +303,25 @@ int main() {
 
     //
     H0 = H0 + W;
-    double start = 0.1;
-    double end = 0.2;
-    double step = 0.01;
+    double start = std::stod(argv[1]);
+    double end = std::stod(argv[2]);
+    double step = std::stod(argv[3]);
+    
+    // double start = 0.0;
+    // double end = 1.0;
+    // double step = 0.1;
+    
+    // for (int i = 0; i < argc; ++i) {
+    //     std::cout << "Argument " << i << " : " << argv[i] << std::endl;
+    // }
+
 
     Methods test = Methods(H0, W, v1, v0, n, f_prof, start, end, step);
     std::cout << "H0:"<< H0 << std::endl;
     std::cout << "W:" << W<< std::endl;
     std::cout << "v:"<< v1 << std::endl;
     std::cout << "start="<< start << " end="<< end << " step="<< step << std::endl;
-    auto v = test.M2();
+    auto v = test.M4();
     
     std::cout << "------------------ final ---------------------"<< std::endl;
     test.print_more_info(v, test);
@@ -318,3 +331,4 @@ int main() {
     return 0;
 
 }
+

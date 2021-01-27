@@ -131,7 +131,7 @@ def M4(H0, W, v, start, stop, step):
     def commutator(A1, A2):
         return A1.dot(A2) - A2.dot(A1)
 
-    section = np.linspace(start, stop, num=int((stop-start)//step +1), endpoint=True)
+    section = np.linspace(start, stop, num=int((stop-start)//step), endpoint=False)
     Y = v
     c1 = 0.5 - np.sqrt(3)/6
     c2 = 0.5 + np.sqrt(3)/6
@@ -139,8 +139,8 @@ def M4(H0, W, v, start, stop, step):
         print("---------",i ,"---------", t, "----------")
         A1 = H0 + f_prof(t + c1*step) * W
         A2 = H0 + f_prof(t + c2*step) * W
-        omega = step/2*(A1+A2) + (np.sqrt(3)/12 * step**2) * commutator(A2, A1)
-        Y = exp(omega, Y, -1.0)
+        omega = -step/2*(A1+A2) + 1j*(np.sqrt(3)/12 * step**2) * commutator(A2, A1)
+        Y = exp(omega, Y, 1.0)
         #print(Y)
         #print('norm ', 1-la.norm(Y))
 
@@ -161,7 +161,7 @@ def M6(H0, W, v, start, stop, step):
     def commutator(A1, A2):
         return A1.dot(A2) - A2.dot(A1)
 
-    section = np.linspace(start, stop, num=int((stop-start)//step +1), endpoint=True)
+    section = np.linspace(start, stop, num=int((stop-start)//step), endpoint=False)
     Y = v
     c1 = 0.5 - np.sqrt(15)/10
     c2 = 0.5
@@ -196,10 +196,11 @@ stop = 0.2
 t = time()
 # print('step: ', step)
 #matrM2 = M2(H0+W, W, v1, start, stop, step)
-print('#'*25, ' final ', '#'*25)
+
 #print_more_info(matrM2)
 
 matrM4 = M4(H0+W, W, v1, start, stop, step)
+print('#'*25, ' final ', '#'*25)
 print_more_info(matrM4)
 
 # matrM6 = M6(H0+W, W, v1, start, stop, step)
