@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <chrono>
 
 #include </usr/include/eigen3/Eigen/Dense>
 
@@ -160,6 +161,74 @@ public:
             #endif
         }
         return Y;
+    }
+
+    Matrix<complex<double>, 3, 1> Cf4(){
+        
+        double c1 = 0.5 - sqrt(3.0)/6.0;
+        double c2 = 0.5 + sqrt(3.0)/6.0;
+        
+        double a1 = 0.25 - sqrt(3.0)/6.0;
+        double a2 = 0.25 + sqrt(3.0)/6.0;
+        
+        Matrix<double, 3, 3> A1, A2;
+        auto Y = v;
+        for (double t : section)
+        {
+            A1 = H0 + prof(t + c1 * step, v0, n) * W;
+            A2 = H0 + prof(t + c2 * step, v0, n) * W;
+
+            Y = matrix_exp_puzzer(
+                -step*(a2*A1 + a1*A2),
+                matrix_exp_puzzer(-step*(a1*A1 + a2*A2), Y, 1.0),
+                1.0);
+            
+
+            #ifdef DEBUG_LINTERNALS
+                std::cout << "--------------------" << t << "-------------------" << std::endl;
+                print_more_info(Y, *this);
+            #endif
+        }
+    }
+
+    Matrix<complex<double>, 3, 1> Cf4_3(){
+        
+        double c1 = 0.5 - sqrt(15.0) / 10.0;
+        double c2 = 0.5;
+        double c3 = 0.5 + sqrt(15.0) / 10.0;
+        
+        double a11 = 37.0/240.0 - 10.0*sqrt(15.0)/261.0;
+        double a12 = -1.0/30.0;
+        double a13 = 37.0/240.0 + 10.0*sqrt(15.0)/261.0;
+        double a21 = -11.0/360.0;
+        double a22 = 23.0/45.0;
+        double a23 = -11.0/360.0;
+        double a31 = 37.0/240.0 + 10.0*sqrt(15.0)/261.0;
+        double a32 = -1.0/30.0;
+        double a33 = 37.0/240.0 - 10.0*sqrt(15.0)/261.0;
+        
+        Matrix<double, 3, 3> A1, A2, A3, Y1, Y2, Y3;
+        auto Y = v;
+        for (double t : section)
+        {
+            A1 = H0 + prof(t + c1 * step, v0, n) * W;
+            A2 = H0 + prof(t + c2 * step, v0, n) * W;
+            A3 = H0 + prof(t + c3 * step, v0, n) * W;
+            
+            Y1 = -step*(a11*A1 + a12*A2 + a13*A3);
+            Y2 = -step*(a21*A1 + a22*A2 + a23*A3);
+            Y3 = -step*(a31*A1 + a32*A2 + a33*A3);
+
+            Y = matrix_exp_puzzer(Y3, Y, 1.0);
+            Y = matrix_exp_puzzer(Y2, Y, 1.0);
+            Y = matrix_exp_puzzer(Y1, Y, 1.0);
+            
+
+            #ifdef DEBUG_LINTERNALS
+                std::cout << "--------------------" << t << "-------------------" << std::endl;
+                print_more_info(Y, *this);
+            #endif
+        }
     }
 
     void print_more_info(Matrix<complex<double>, 3, 1> v, Methods &m_class)
@@ -319,20 +388,25 @@ int main(int argc, char *argv[])
 
     string mthd = argv[4];
     
-    if (mthd == "M2")
-    {
-        v = test.M2();
-    }
-    if (mthd == "M4")
-    {
-        v = test.M4();
-    }
-    if (mthd == "M6")
-    {
-        v = test.M6();
-    }
 
+    auto start_time = std::chrono::high_resolution_clock::now();
+    
+    if (mthd == "M2") v = test.M2();
+    if (mthd == "M4") v = test.M4();
+    if (mthd == "M6") v = test.M6();
+    if (mthd == "Cf4") v = test.Cf4();
+    if (mthd == "Cf_3") v = test.Cf4_3();
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> time = (end_time - start_time);
+    
     std::cout << "------------------ final ---------------------" << std::endl;
     test.print_more_info(v, test);
+    std::cout<<"P = "<<std::defaultfloat<<( c12*c12*c13*c13*abs(v(0))*abs(v(0))+
+                      s12*s12*c13*c13*abs(v(1))*abs(v(1))+
+                      s13*s13*abs(v(2))*abs(v(2)) ) << std::endl;
+    
+    std::cout.precision(14);
+    std::cout << "time =" << std::chrono::duration_cast<std::chrono::milliseconds> time.count() << std::endl; 
     return 0;
 }

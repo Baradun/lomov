@@ -7,25 +7,31 @@ list_process = []
 
 
 def sl():
-    time.sleep(1)
+    time.sleep(2)
+    print("закончил")
 
 for i in range(10):
     list_process.append(Process(target=sl))
 
-cores = 4
+threads = 4
 run_process = []
 while len(list_process) != 0:
-    if len(run_process) < cores:
+    if len(run_process) < threads and len(list_process) != 0:
         run_process.append(list_process.pop(0))
         run_process[len(run_process)-1].start()
-        
+        print('добавил')
+        next
+    
+    for i in run_process:
+        if not i.is_alive():
+            run_process.remove(i)
+    
 
-# print(list_process[0].is_alive())
-# print(list_process[0].start())
-# print(list_process[0].is_alive())
-# time.sleep(2)
-# print(list_process[0].is_alive())
 
+while len(run_process) != 0:
+    for i in run_process:
+        if not i.is_alive():
+            run_process.remove(i)
 
 
 print("end")
