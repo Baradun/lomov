@@ -7,12 +7,12 @@ import time
 base_dir = 'main/'
 run_file = 'main'
 log_files_dir = 'logs/'
-runs = 2
+runs = 1
 
 
 def run(run_file, start, stop, step, method, output_file):
     command = './' + base_dir + '/' + run_file + ' ' + start + \
-        ' ' + stop + ' ' + step + ' ' + method + ' > ' + output_file
+        ' ' + stop + ' ' + step + ' ' + method + ' > ' + output_file + ' 2>&1'
     try:
         # result = subprocess.run(['julia', base_dir+read_file], stdout=subprocess.PIPE)
         # result = result.stdout.decode('utf-8')
@@ -89,7 +89,7 @@ def run_process(cores=4):
 
 if __name__ == '__main__':
     start_time = time.time()
-    print('start')
+    print('start prgrm')
 
     run_process()
 
@@ -97,5 +97,9 @@ if __name__ == '__main__':
     print(time.time() - start_time)
 
 
-# TODO: название файлов логов
+# TODO: 
+# * - поправить выделение памаяти 
 # * - поправить вывод времени в плюсах
+
+# * выделить инф из файлов
+# * гнуплот 

@@ -8,6 +8,7 @@ __pycache__/
 
 .idea
 .vscode
+logs
 /lp-lb_N500.dat
 /lp-rb_N500.dat
 /divd-diff-exp_N500.dat
