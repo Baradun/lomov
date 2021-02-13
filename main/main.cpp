@@ -70,7 +70,7 @@ public:
         Matrix<double, 3, 3> A;
         auto Y = v;
         auto point = start; 
-        while (point <= end)
+        while (point < end)
         {
             
             A = -step * (H0 + prof(point + step / 2.0, v0, n) * W);
@@ -94,7 +94,7 @@ public:
         Matrix<complex<double>, 3, 3> A2;
         Matrix<complex<double>, 3, 3> omega;
         auto point = start; 
-        while (point <= end)
+        while (point < end)
         {
             A1 = H0 + prof(point + c1 * step, v0, n) * W;
             A2 = H0 + prof(point + c2 * step, v0, n) * W;
@@ -129,7 +129,7 @@ public:
         Matrix<complex<double>, 3, 3> omega;
 
         auto point = start;
-        while (point <= end)
+        while (point < end)
         {
             A1 = H0 + prof(point + c1 * step, v0, n) * W;
             A2 = H0 + prof(point + c2 * step, v0, n) * W;
@@ -171,7 +171,7 @@ public:
         Matrix<double, 3, 3> A1, A2;
         auto Y = v;
         auto point = start;
-        while (point <= end)
+        while (point < end)
         {
             A1 = H0 + prof(point + c1 * step, v0, n) * W;
             A2 = H0 + prof(point + c2 * step, v0, n) * W;
@@ -210,7 +210,7 @@ public:
         Matrix<double, 3, 3> A1, A2, A3, Y1, Y2, Y3;
         auto Y = v;
         auto point = start;
-        while (point <= end)
+        while (point < end)
         {
             A1 = H0 + prof(point + c1 * step, v0, n) * W;
             A2 = H0 + prof(point + c2 * step, v0, n) * W;
@@ -398,7 +398,7 @@ int main(int argc, char *argv[])
     if (mthd == "M4") v = test.M4();
     if (mthd == "M6") v = test.M6();
     if (mthd == "Cf4") v = test.Cf4();
-    if (mthd == "Cf_3") v = test.Cf4_3();
+    if (mthd == "Cf4_3") v = test.Cf4_3();
 
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> time = (end_time - start_time);

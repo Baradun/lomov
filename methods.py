@@ -7,7 +7,9 @@ import time
 base_dir = 'main/'
 run_file = 'main'
 log_files_dir = 'logs/'
-runs = 1
+params_file = 'methods.json'
+runs = 10
+cores = 12
 
 
 def run(run_file, start, stop, step, method, output_file):
@@ -32,7 +34,7 @@ def get_list_process():
     list_process = []
 
     data = 0
-    with open('methods.json', 'r') as f:
+    with open(params_file, 'r') as f:
         data = f.read()
     data_json = json.loads(data)
 
@@ -91,7 +93,26 @@ if __name__ == '__main__':
     start_time = time.time()
     print('start prgrm')
 
-    run_process()
+
+    log_files_dir = 'logs_0.1_0.15/'
+    params_file = 'methods_0.1_0.15.json'
+    run_process(cores=cores)
+
+    print('#'*80)
+    print('time = ', time.time() - start_time)
+    print('#'*80)
+
+    log_files_dir = 'logs_0.1_0.2/'
+    params_file = 'methods_0.1_0.2.json'
+    run_process(cores=cores)
+
+    print('#'*80)
+    print('time = ', time.time() - start_time)
+    print('#'*80)
+
+    log_files_dir = 'logs_0.1_0.25/'
+    params_file = 'methods_0.1_0.25.json'
+    run_process(cores=cores)
 
     print("end prgrm")
     print(time.time() - start_time)
