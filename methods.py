@@ -1,126 +1,98 @@
 import json
-from multiprocessing import Process
-import os
+from multiprocessing import Pool
 import subprocess
 import time
 
-base_dir = 'main/'
-run_file = 'main'
-log_files_dir = 'logs/'
-params_file = 'methods.json'
-runs = 10
-cores = 12
+BASE_DIR = 'main/'
+RUN_FILE = 'main'
+RUNS = 10
+CORES = 12
 
 
-def run(run_file, start, stop, step, method, output_file):
-    command = './' + base_dir + '/' + run_file + ' ' + start + \
-        ' ' + stop + ' ' + step + ' ' + method + ' > ' + output_file + ' 2>&1'
+def run_subprocess(params):
+    """"
+
+    """
+    # params = (start, stop, step, method, output_file)
+    command = './' + BASE_DIR + '/' + RUN_FILE + ' ' + params[0] + \
+        ' ' + params[1] + ' ' + params[2] + ' ' + \
+        params[3] + ' > ' + params[4] + ' 2>&1'
+
     try:
-        # result = subprocess.run(['julia', base_dir+read_file], stdout=subprocess.PIPE)
-        # result = result.stdout.decode('utf-8')
-        result = subprocess.run([command], shell=True)  # stdout=str)
-
-        print(f'end')
+        result = subprocess.run([command], shell=True, check=True)
         if result.returncode == 0:
             return 0
-        else:
-            return RuntimeError
-    except subprocess.SubprocessError as e:
-        return e
+        return RuntimeError
+    except subprocess.SubprocessError as exeption:
+        return exeption
 
 
-def get_list_process():
+def get_params():
+    """
 
-    list_process = []
+    """
+
+    list_params = []
 
     data = 0
-    with open(params_file, 'r') as f:
-        data = f.read()
+    with open(PARAMS_FILE, 'r') as file:
+        data = file.read()
     data_json = json.loads(data)
 
-    for i, method_data in enumerate(data_json[0].get('methods')):
+    for method_data in data_json[0].get('methods'):
         method_name = method_data.get('method')
         start = str(method_data.get('start'))
         stop = str(method_data.get('stop'))
         step = str(method_data.get('step'))
-        log_file_name = (log_files_dir + method_name +
+        log_file_name = (LOG_FILE_DIR + method_name +
                          '_' + start + '_' + stop + '_' + step + '.log')
 
+        for j in range(RUNS):
+            list_params.append((
+                start,
+                stop,
+                step,
+                method_name,
+                log_file_name.replace(".log", f'_{j}.log'),
+            ))
 
-        for j in range(runs):
-            list_process.append(
-                Process(target=run,
-                        args=(
-                            run_file,
-                            start,
-                            stop,
-                            step,
-                            method_name,
-                            log_file_name.replace(".log", f'_{j}.log'),
-                        )))
-            # run(run_file, start, stop, step, method_name, log_file_name)
-
-    print(list_process)
-    return list_process
+    return list_params
 
 
-def run_process(cores=4):
-    list_process = get_list_process()
+def run():
+    """
 
-    run_process = []
-    while len(list_process) != 0:
-        if len(run_process) < cores and len(list_process) != 0:
-            run_process.append(list_process.pop(0))
-            print('добавили', run_process[len(run_process)-1])
-            run_process[len(run_process)-1].start()
-
-            next
-
-        for i in run_process:
-            if not i.is_alive():
-                print("закончил", i)
-                run_process.remove(i)
-
-    print(run_process)
-    while len(run_process) != 0:
-        for i in run_process:
-            if not i.is_alive():
-                print("финальное закрытие", i)
-                run_process.remove(i)
+    """
+    list_params = get_params()
+    print(list_params)
+    process_pool = Pool(CORES)
+    process_pool.map(run_subprocess, list_params)
 
 
 if __name__ == '__main__':
+
     start_time = time.time()
     print('start prgrm')
 
-
-    log_files_dir = 'logs_0.1_0.15/'
-    params_file = 'methods_0.1_0.15.json'
-    run_process(cores=cores)
-
-    print('#'*80)
-    print('time = ', time.time() - start_time)
-    print('#'*80)
-
-    log_files_dir = 'logs_0.1_0.2/'
-    params_file = 'methods_0.1_0.2.json'
-    run_process(cores=cores)
+    LOG_FILE_DIR = 'logs/logs_0.1_0.15/'
+    PARAMS_FILE = 'logs/methods_0.1_0.15.json'
+    run()
 
     print('#'*80)
     print('time = ', time.time() - start_time)
     print('#'*80)
 
-    log_files_dir = 'logs_0.1_0.25/'
-    params_file = 'methods_0.1_0.25.json'
-    run_process(cores=cores)
+    LOG_FILE_DIR = 'logs/logs_0.1_0.2/'
+    PARAMS_FILE = 'logs/methods_0.1_0.2.json'
+    run()
+
+    print('#'*80)
+    print('time = ', time.time() - start_time)
+    print('#'*80)
+
+    LOG_FILE_DIR = 'logs/logs_0.1_0.25/'
+    PARAMS_FILE = 'logs/methods_0.1_0.25.json'
+    run()
 
     print("end prgrm")
     print(time.time() - start_time)
-
-
-# TODO: 
-# * - поправить выделение памаяти 
-# * - поправить вывод времени в плюсах
-
-# * выделить инф из файлов
-# * гнуплот 

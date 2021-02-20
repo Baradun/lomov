@@ -48,20 +48,11 @@ public:
         function<double(double, double, double)> prof,
         double start,
         double end,
-        double step
+        double steps
 
-    )
+    ): H0(H0), W(W), v(v), v0(v0), n(n), start(start), end(end), prof(prof)
     {
-        this->H0 = H0;
-        this->W = W;
-        this->v = v;
-        this->v0 = v0;
-        this->n = n;
-        this->start = start;
-        this->end = end;
-        this->step = step;
-        this->prof = prof;
-
+        this->step = (end - start) / (steps);
     }
 
 
@@ -236,8 +227,6 @@ public:
 
     void print_more_info(Matrix<complex<double>, 3, 1> v, Methods &m_class)
     {
-        //std::cout << "H0" << m_class.H0 << "\n W=" << m_class.W <<std::endl;
-        //std::cout << "---------------------------------------"<< std::endl;
         std::cout << "p = " << m_class.p << " q=" << m_class.q << std::endl;
         std::cout << "lb0 = " << m_class.lbd0 << " lbd1 = " << m_class.lbd1 << " lbd2 = " << m_class.lbd2 << std::endl;
         std::cout << "a = " << m_class.a << " b = " << m_class.b << " c = " << m_class.c << std::endl;
@@ -334,13 +323,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // ----- test vectors -----
     Matrix<std::complex<double>, 3, 1> v1;
     v1(0, 0) = 1.0;
-    Matrix<std::complex<double>, 3, 1> v2;
-    v2(1, 0) = 1.0;
-    Matrix<std::complex<double>, 3, 1> v3;
-    v3(2, 0) = 1.0;
 
     // ----- H0 -----
     Matrix<double, 3, 3> H0;
@@ -367,24 +351,19 @@ int main(int argc, char *argv[])
     double v0 = 93536.7;
     double n = 10.3;
 
-    //
-    H0 = H0 + W;
-
-    // double start = 0.0;
-    // double end = 1.0;
-    // double step = 0.1;
+    
 
     double start = std::stod(argv[1]);
     double end = std::stod(argv[2]);
-    double step = std::stod(argv[3]);
+    double steps = std::stod(argv[3]);
 
     
-    
-    Methods test = Methods(H0, W, v1, v0, n, f_prof, start, end, step);
+    H0 = H0 + W;
+    Methods test = Methods(H0, W, v1, v0, n, f_prof, start, end, steps);
     std::cout << "H0 = " << H0 << std::endl;
     std::cout << "W = " << W << std::endl;
     std::cout << "v = " << v1 << std::endl;
-    std::cout << "start = " << start << " end = " << end << " step = " << step << std::endl;
+    std::cout << "start = " << start << " end = " << end << " step = " << steps << std::endl;
 
     Matrix<std::complex<double>, 3, 1> v;
 
