@@ -59,28 +59,69 @@ def data_to_graf(folder_name):
     return data_list
 
 
-def make_graf_file(data, start, end, method):
-    for i in data:
-        if (str(start) == i.get('start') and
-            str(end) == i.get('end') and
-            method == i.get('method') and
-            '1e-10' == i.get('step')):
+def make_graf_file(data, start, end, method, graf_type=0):
+    # x = steps; y = err
+    if graf_type == 0:
+        for i in data:
+            if (str(start) == i.get('start') and
+                str(end) == i.get('end') and
+                method == i.get('method') and
+                    '1e-10' == i.get('step')):
 
-            basis = i
-            print(basis)
-            break
+                basis = i
+                print(basis)
+                break
+
+        for method_name in ['M2', 'M4', 'M6', 'Cf4', 'Cf4_3']:
+            with open(f'for_gnuplot_{method_name}.dat', 'w') as output_file:
+                for i in data:
+                    if (str(start) == i.get('start') and
+                        str(end) == i.get('end') and
+                            method_name == i.get('method')):
+
+                        err = abs(float(i.get('P')) -
+                                  float(basis.get('P'))) / float(basis.get('P'))
+                        step = i.get('step')
+                        P = i.get('P')
+                        output_file.write(f'{step} {err} {P}\n')
+
+    # x = time; y = steps
+    if graf_type == 1:
+        for method_name in ['M2', 'M4', 'M6', 'Cf4', 'Cf4_3']:
+            with open(f'for_gnuplot_{method_name}.dat', 'w') as output_file:
+                for i in data:
+                    if (str(start) == i.get('start') and
+                        str(end) == i.get('end') and
+                            method_name == i.get('method')):
+                        
+                        step = i.get('step')
+                        time = i.get('time')
+                        output_file.write(f'{time} {step} \n')
+
     
-    for method_name in ['M2', 'M4', 'M6', 'Cf4', 'Cf4_3']:
-        with open(f'for_gnuplot_{method_name}.dat', 'w') as output_file:
-            for i in data:
-                if (str(start) == i.get('start') and
-                    str(end) == i.get('end') and
-                    method_name == i.get('method')):
+    # x = time; y = steps
+    if graf_type == 2:
+        max_time = float(data[0].get('time'))
+        for i in data:
+            if (str(start) == i.get('start') and
+                str(end) == i.get('end')):
 
-                    err = abs(float(i.get('P')) - float(basis.get('P'))) / float(basis.get('P'))
-                    step = i.get('step')
-                    P = i.get('P')
-                    output_file.write(f'{step} {err} {P}\n')
+                time = float(i.get('time'))
+                if time > max_time:
+                    max_time = time
+            
+
+
+        for method_name in ['M2', 'M4', 'M6', 'Cf4', 'Cf4_3']:
+            with open(f'for_gnuplot_{method_name}.dat', 'w') as output_file:
+                for i in data:
+                    if (str(start) == i.get('start') and
+                        str(end) == i.get('end') and
+                            method_name == i.get('method')):
+
+                        step = i.get('step')
+                        time = float(i.get('time')) / max_time
+                        output_file.write(f'{time} {step} \n')
 
 
 if __name__ == '__main__':
@@ -96,8 +137,7 @@ if __name__ == '__main__':
     # output_file = '0.1_0.25.txt'
     # collect_statistics(log_files_dir, output_file)
 
-    
-    # log_files_dir = 'logs/logs_0.1_0.15'    
+    # log_files_dir = 'logs/logs_0.1_0.15'
     # data.append(data_to_graf(log_files_dir))
 
     log_files_dir = 'logs/logs_0.1_0.2'
@@ -105,6 +145,6 @@ if __name__ == '__main__':
 
     # log_files_dir = 'logs/logs_0.1_0.25'
     # data.append(data_to_graf(log_files_dir)[0])
-    #print(data)
+    # print(data)
 
-    make_graf_file(data, 0.1, 0.2, 'M4')
+    make_graf_file(data, 0.1, 0.2, 'M4', 1)
