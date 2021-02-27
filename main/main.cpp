@@ -45,14 +45,15 @@ public:
         Matrix<complex<double>, 3, 1> v,
         double v0,
         double n,
-        function<double(double, double, double)> prof,
+        function<double(double)> prof,
         double start,
         double end,
         double steps
 
     ): H0(H0), W(W), v(v), v0(v0), n(n), start(start), end(end), prof(prof)
     {
-        this->step = (end - start) / (steps);
+        if (steps >= 1) this->step = (end - start) / (steps);
+        else this->step = steps;
     }
 
 
@@ -64,7 +65,7 @@ public:
         while (point < end)
         {
             
-            A = -step * (H0 + prof(point + step / 2.0, v0, n) * W);
+            A = -step * (H0 + prof(point + step / 2.0) * W);
             Y = matrix_exp_puzzer(A, Y, -1.0);
 
             #ifdef DEBUG_LINTERNALS
@@ -87,8 +88,8 @@ public:
         auto point = start; 
         while (point < end)
         {
-            A1 = H0 + prof(point + c1 * step, v0, n) * W;
-            A2 = H0 + prof(point + c2 * step, v0, n) * W;
+            A1 = H0 + prof(point + c1 * step) * W;
+            A2 = H0 + prof(point + c2 * step) * W;
             omega = (-step / 2.0) * (A1 + A2) + 1i * (sqrt(3.0) / 12.0 * step * step) * calc_commutator(A2, A1);
             Y = matrix_exp_puzzer(omega, Y, 1.0);
 
@@ -122,9 +123,9 @@ public:
         auto point = start;
         while (point < end)
         {
-            A1 = H0 + prof(point + c1 * step, v0, n) * W;
-            A2 = H0 + prof(point + c2 * step, v0, n) * W;
-            A3 = H0 + prof(point + c3 * step, v0, n) * W;
+            A1 = H0 + prof(point + c1 * step) * W;
+            A2 = H0 + prof(point + c2 * step) * W;
+            A3 = H0 + prof(point + c3 * step) * W;
 
             B1 = step * A2;
             B2 = (sqrt(15.0) * step / 3.0) * (A3 - A1);
@@ -164,8 +165,8 @@ public:
         auto point = start;
         while (point < end)
         {
-            A1 = H0 + prof(point + c1 * step, v0, n) * W;
-            A2 = H0 + prof(point + c2 * step, v0, n) * W;
+            A1 = H0 + prof(point + c1 * step) * W;
+            A2 = H0 + prof(point + c2 * step) * W;
 
             Y = matrix_exp_puzzer(
                 -step*(a2*A1 + a1*A2),
@@ -203,9 +204,9 @@ public:
         auto point = start;
         while (point < end)
         {
-            A1 = H0 + prof(point + c1 * step, v0, n) * W;
-            A2 = H0 + prof(point + c2 * step, v0, n) * W;
-            A3 = H0 + prof(point + c3 * step, v0, n) * W;
+            A1 = H0 + prof(point + c1 * step) * W;
+            A2 = H0 + prof(point + c2 * step) * W;
+            A3 = H0 + prof(point + c3 * step) * W;
             
             Y1 = -step*(a11*A1 + a12*A2 + a13*A3);
             Y2 = -step*(a21*A1 + a22*A2 + a23*A3);
@@ -249,7 +250,7 @@ private:
     double end;
     double step;
     vector<double> section;
-    function<double(double, double, double)> prof; //??
+    function<double(double)> prof; //??
 
     complex<double> calc_lambda(double k, complex<double> p, complex<double> q)
     {
@@ -348,8 +349,10 @@ int main(int argc, char *argv[])
         c12 * c13 * s13, s12 * c13 * s13, s13 * s13;
 
     // ----- other -----
-    double v0 = 93536.7;
-    double n = 10.3;
+    double v0 = 6.5956e4;
+    double n = 10.54;
+    function<double(double)> prof = [=](double t) { return f_prof(t, v0, n) ; };
+
 
     
 
@@ -359,7 +362,7 @@ int main(int argc, char *argv[])
 
     
     H0 = H0 + W;
-    Methods test = Methods(H0, W, v1, v0, n, f_prof, start, end, steps);
+    Methods test = Methods(H0, W, v1, v0, n, prof, start, end, steps);
     std::cout << "H0 = " << H0 << std::endl;
     std::cout << "W = " << W << std::endl;
     std::cout << "v = " << v1 << std::endl;

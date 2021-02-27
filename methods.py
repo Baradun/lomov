@@ -64,9 +64,13 @@ def run():
 
     """
     list_params = get_params()
-    print(list_params)
     process_pool = Pool(CORES)
-    process_pool.map(run_subprocess, list_params)
+    result = process_pool.map(run_subprocess, list_params)
+    print(result)
+    
+    
+    process_pool.close()
+    process_pool.join()
 
 
 if __name__ == '__main__':
@@ -74,24 +78,24 @@ if __name__ == '__main__':
     start_time = time.time()
     print('start prgrm')
 
-    LOG_FILE_DIR = 'logs/logs_0.1_0.15/'
-    PARAMS_FILE = 'logs/methods_0.1_0.15.json'
-    run()
+    # LOG_FILE_DIR = 'logs/logs_0.1_0.15/'
+    # PARAMS_FILE = 'logs/methods_0.1_0.15.json'
+    # run()
 
-    print('#'*80)
-    print('time = ', time.time() - start_time)
-    print('#'*80)
+    # print('#'*80)
+    # print('time = ', time.time() - start_time)
+    # print('#'*80)
 
-    LOG_FILE_DIR = 'logs/logs_0.1_0.2/'
-    PARAMS_FILE = 'logs/methods_0.1_0.2.json'
-    run()
+    # LOG_FILE_DIR = 'logs/logs_0.1_0.2/'
+    # PARAMS_FILE = 'logs/methods_0.1_0.2.json'
+    # run()
 
-    print('#'*80)
-    print('time = ', time.time() - start_time)
-    print('#'*80)
+    # print('#'*80)
+    # print('time = ', time.time() - start_time)
+    # print('#'*80)
 
-    LOG_FILE_DIR = 'logs/logs_0.1_0.25/'
-    PARAMS_FILE = 'logs/methods_0.1_0.25.json'
+    LOG_FILE_DIR = 'logs_0.1_0.3/'
+    PARAMS_FILE = 'methods_0.1_0.3.json'
     run()
 
     print("end prgrm")
