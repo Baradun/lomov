@@ -6,7 +6,7 @@
 #include <string>
 #include <chrono>
 
-#include </usr/include/eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 
 using std::complex;
 using std::vector;
