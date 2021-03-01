@@ -3,12 +3,13 @@
 import json
 import os
 from multiprocessing import Pool
+from pathlib import Path
 import subprocess
 import time
 
 BASE_DIR = os.getenv('BASE_DIR', 'main')
 RUN_FILE = os.getenv('RUN_FILE', "main")
-RUNS = os.getenv('RUNS', 10)
+RUNS = int(os.getenv('RUNS', 10))
 CORES = os.getenv('CORES', 12)
 SCRIPT_DIR = os.getenv('MESON_SOURCE_ROOT', '.')
 WDIR = os.getenv('MESON_BUILD_ROOT', '.')
@@ -44,13 +45,13 @@ def get_params(params_file, log_dir):
         data = file.read()
     data_json = json.loads(data)
 
-    for method_data in data_json[0].get('methods'):
+    # There json file structure is unclear.
+    for method_data in data_json.get('methods'):
         method_name = method_data.get('method')
         start = str(method_data.get('start'))
         stop = str(method_data.get('stop'))
         step = str(method_data.get('step'))
-        log_file_name = (log_dir + method_name +
-                         '_' + start + '_' + stop + '_' + step + '.log')
+        log_file_name = Path(log_dir / method_name)
 
         for j in range(RUNS):
             list_params.append((
@@ -58,7 +59,7 @@ def get_params(params_file, log_dir):
                 stop,
                 step,
                 method_name,
-                log_file_name.replace(".log", f'_{j}.log'),
+                log_file_name / f'run_{j}.log'
             ))
 
     return list_params
@@ -83,8 +84,14 @@ if __name__ == '__main__':
 
     """
 
-    ### We need to prepare some directories.
-    ### LOG_FILE_DIR must exist before all below to be run.
+    logs_dir = Path("logs")
+    if not os.path.isdir(logs_dir):
+        os.mkdir(logs_dir)
+
+    json_dir = Path("methods")
+    if not os.path.isdir(json_dir):
+        print(f"Can't work without '{json_dir}' directory with json files!")
+        exit(1)
 
     start_time = time.time()
     print('start prgrm')
@@ -107,7 +114,16 @@ if __name__ == '__main__':
 
     #  LOG_FILE_DIR = 'logs_0.1_0.3/'
     #  PARAMS_FILE = 'methods_0.1_0.3.json'
-    run("logs_0.1_0.3/", "methods_0.1_0.3.json")
+    log_dir = logs_dir / "01_03"
+    if not os.path.isdir(log_dir):
+        os.mkdir(log_dir)
+    json_file = json_dir / "01_03.json"
+    if not os.path.isfile(json_file):
+        print(f"Can't run this cycle, we need a '{json_file}' in '{json_dir}'!")
+        exit(2)
+    par_list = get_params(json_file, log_dir);
+    print(f"get_params returned: {par_list}")
+    # run(log_dir, json_file)
 
     print("end prgrm")
     print(time.time() - start_time)
