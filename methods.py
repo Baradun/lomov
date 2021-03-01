@@ -30,7 +30,7 @@ def run_subprocess(params):
         return exeption
 
 
-def get_params():
+def get_params(params_file, log_dir):
     """Set up parameters to run a program.
 
     """
@@ -38,7 +38,7 @@ def get_params():
     list_params = []
 
     data = 0
-    with open(PARAMS_FILE, 'r') as file:
+    with open(params_file, 'r') as file:
         data = file.read()
     data_json = json.loads(data)
 
@@ -47,7 +47,7 @@ def get_params():
         start = str(method_data.get('start'))
         stop = str(method_data.get('stop'))
         step = str(method_data.get('step'))
-        log_file_name = (LOG_FILE_DIR + method_name +
+        log_file_name = (log_dir + method_name +
                          '_' + start + '_' + stop + '_' + step + '.log')
 
         for j in range(RUNS):
@@ -103,9 +103,9 @@ if __name__ == '__main__':
     # print('time = ', time.time() - start_time)
     # print('#'*80)
 
-    LOG_FILE_DIR = 'logs_0.1_0.3/'
-    PARAMS_FILE = 'methods_0.1_0.3.json'
-    run()
+    #  LOG_FILE_DIR = 'logs_0.1_0.3/'
+    #  PARAMS_FILE = 'methods_0.1_0.3.json'
+    run("logs_0.1_0.3/", "methods_0.1_0.3.json")
 
     print("end prgrm")
     print(time.time() - start_time)
