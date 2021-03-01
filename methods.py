@@ -8,6 +8,8 @@ BASE_DIR = os.getenv('BASE_DIR', 'main')
 RUN_FILE = os.getenv('RUN_FILE', "main")
 RUNS = os.getenv('RUNS', 10)
 CORES = os.getenv('CORES', 12)
+SCRIPT_DIR = os.getenv('MESON_SOURCE_ROOT', '.')
+WDIR = os.getenv('MESON_BUILD_ROOT', '.')
 
 
 def run_subprocess(params):
@@ -78,6 +80,9 @@ if __name__ == '__main__':
     """Main 'module' of the script.
 
     """
+
+    ### We need to prepare some directories.
+    ### LOG_FILE_DIR must exist before all below to be run.
 
     start_time = time.time()
     print('start prgrm')
