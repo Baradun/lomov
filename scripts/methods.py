@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import json
 import os
 from multiprocessing import Pool
@@ -62,11 +64,11 @@ def get_params(params_file, log_dir):
     return list_params
 
 
-def run():
+def run(log_dir, json_file):
     """Prepare all necessary to run programs in parallel.
 
     """
-    list_params = get_params()
+    list_params = get_params(json_file, log_dir)
     process_pool = Pool(CORES)
     result = process_pool.map(run_subprocess, list_params)
     print(result)
