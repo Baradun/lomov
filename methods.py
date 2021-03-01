@@ -89,7 +89,7 @@ if __name__ == '__main__':
 
     # LOG_FILE_DIR = 'logs/logs_0.1_0.15/'
     # PARAMS_FILE = 'logs/methods_0.1_0.15.json'
-    # run()
+    # run('logs/logs_0.1_0.15/', 'logs/methods_0.1_0.15.json')
 
     # print('#'*80)
     # print('time = ', time.time() - start_time)
@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
     # LOG_FILE_DIR = 'logs/logs_0.1_0.2/'
     # PARAMS_FILE = 'logs/methods_0.1_0.2.json'
-    # run()
+    # run('logs/logs_0.1_0.2/', 'logs/methods_0.1_0.2.json')
 
     # print('#'*80)
     # print('time = ', time.time() - start_time)
