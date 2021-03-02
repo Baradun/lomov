@@ -2,9 +2,10 @@
 
 import json
 import os
-from multiprocessing import Pipe, Pool
-from subprocess import PIPE, Popen
+from multiprocessing import Pool
+from subprocess import Popen
 import time
+
 
 BASE_DIR = os.getenv('BASE_DIR', 'main')
 RUN_FILE = os.getenv('RUN_FILE', "main")
@@ -23,9 +24,9 @@ def run_subprocess(params):
         ' ' + params.get('stop') + ' ' + params.get('step') + ' ' + \
         params.get('method') + ' > ' + params.get('log_file_name') + ' 2>&1'
 
-    with Popen(command, shell=True, stdout=PIPE) as proc:
-        print(proc) 
-    
+    with Popen(command, shell=True) as proc:
+        print(proc)
+
     # try:
     #     result = subprocess.run([command], shell=True, check=True)
     #     if result.returncode == 0:
@@ -99,4 +100,3 @@ if __name__ == '__main__':
 
     print("end prgrm")
     print(time.time() - start_time)
- 

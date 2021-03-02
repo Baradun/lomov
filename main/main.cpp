@@ -169,8 +169,8 @@ public:
             A2 = H0 + prof(point + c2 * step) * W;
 
             Y = matrix_exp_puzzer(
-                -step*(a2*A1 + a1*A2),
-                matrix_exp_puzzer(-step*(a1*A1 + a2*A2), Y, 1.0),
+                -step*(a1*A1 + a2*A2),
+                matrix_exp_puzzer(-step*(a2*A1 + a1*A2), Y, 1.0),
                 1.0);
             
 
