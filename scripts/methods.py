@@ -2,6 +2,7 @@
 
 import json
 import os
+import sys
 from multiprocessing import Pool
 from pathlib import Path
 import subprocess
@@ -9,8 +10,8 @@ import time
 
 BASE_DIR = os.getenv('BASE_DIR', 'main')
 RUN_FILE = os.getenv('RUN_FILE', "main")
-RUNS = int(os.getenv('RUNS', 10))
-CORES = int(os.getenv('CORES', 12))
+RUNS = int(os.getenv('RUNS', '10'))
+CORES = int(os.getenv('CORES', '12'))
 SCRIPT_DIR = os.getenv('MESON_SOURCE_ROOT', '.')
 WDIR = os.getenv('MESON_BUILD_ROOT', '.')
 
@@ -24,7 +25,8 @@ def run_subprocess(params):
             params["step"], params["method"] ]
 
     try:
-        result = subprocess.run(command, capture_output=True, text=True)
+        result = subprocess.run(command, capture_output=True, check=True,
+                text=True)
         with open(params["dat_file"], "w") as f:
             f.write(result.stdout)
         if result.returncode == 0:
@@ -83,9 +85,6 @@ def run(data_dir, json_file):
 
 
 if __name__ == '__main__':
-    """Main 'module' of the script.
-
-    """
 
     data_dir = Path("data")
     if not os.path.isdir(data_dir):
@@ -94,7 +93,7 @@ if __name__ == '__main__':
     json_dir = Path("methods")
     if not os.path.isdir(json_dir):
         print(f"Can't work without '{json_dir}' directory with json files!")
-        exit(1)
+        sys.exit(1)
 
     start_time = time.time()
     print('start prgrm')
@@ -120,7 +119,7 @@ if __name__ == '__main__':
     json_file = json_dir / "01_03.json"
     if not os.path.isfile(json_file):
         print(f"Can't do this run, we need a '{json_file}' in '{json_dir}'!")
-        exit(2)
+        sys.exit(2)
     run(data_dir, json_file)
 
     print("end prgrm")
