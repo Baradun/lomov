@@ -353,14 +353,10 @@ int main(int argc, char *argv[])
     double n = 10.54;
     function<double(double)> prof = [=](double t) { return f_prof(t, v0, n) ; };
 
-
-    
-
     double start = std::stod(argv[1]);
     double end = std::stod(argv[2]);
     double steps = std::stod(argv[3]);
 
-    
     H0 = H0 + W;
     Methods test = Methods(H0, W, v1, v0, n, prof, start, end, steps);
     std::cout << "H0 = " << H0 << std::endl;
@@ -370,12 +366,10 @@ int main(int argc, char *argv[])
 
     Matrix<std::complex<double>, 3, 1> v;
 
-
     string mthd = argv[4];
-    
 
     auto start_time = std::chrono::high_resolution_clock::now();
-    
+
     if (mthd == "M2") v = test.M2();
     if (mthd == "M4") v = test.M4();
     if (mthd == "M6") v = test.M6();
@@ -384,14 +378,15 @@ int main(int argc, char *argv[])
 
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> time = (end_time - start_time);
-    
+
     std::cout << "------------------ final ---------------------" << std::endl;
     test.print_more_info(v, test);
     std::cout<<"P = "<<std::defaultfloat<<( c12*c12*c13*c13*abs(v(0))*abs(v(0))+
                       s12*s12*c13*c13*abs(v(1))*abs(v(1))+
                       s13*s13*abs(v(2))*abs(v(2)) ) << std::endl;
-    
+
     std::cout.precision(14);
-    std::cout << "time = " << time.count() << std::endl; 
+    std::cout << "time = " << time.count() << std::endl;
+
     return 0;
 }
