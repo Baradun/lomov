@@ -48,7 +48,7 @@ def get_params(params_file, data_dir):
         data = file.read()
     data_json = json.loads(data)
 
-    for method_data in data_json.get('methods'):
+    for method_data in data_json.get('work'):
         method_name = method_data.get('method')
         start = str(method_data.get('start'))
         stop = str(method_data.get('stop'))
