@@ -373,8 +373,8 @@ int main(int argc, char *argv[])
     if (mthd == "M2") v = test.M2();
     if (mthd == "M4") v = test.M4();
     if (mthd == "M6") v = test.M6();
-    if (mthd == "Cf4") v = test.Cf4();
-    if (mthd == "Cf4_3") v = test.Cf4_3();
+    if (mthd == "CF4") v = test.Cf4();
+    if (mthd == "CF4:3") v = test.Cf4_3();
 
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> time = (end_time - start_time);
