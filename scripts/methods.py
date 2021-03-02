@@ -116,7 +116,7 @@ if __name__ == '__main__':
 
     #  LOG_FILE_DIR = 'logs_0.1_0.3/'
     #  PARAMS_FILE = 'methods_0.1_0.3.json'
-    json_file = json_dir / "01_03.json"
+    json_file = json_dir / "work.json"
     if not os.path.isfile(json_file):
         print(f"Can't do this run, we need a '{json_file}' in '{json_dir}'!")
         sys.exit(2)

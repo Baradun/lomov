@@ -28,7 +28,7 @@ for r in rngs:
 
 shfld = random.sample(work, k=len(work))
 
-with open(json_dir / "sample1.json", "w") as f:
+with open(json_dir / "work.json", "w") as f:
     json.dump({ "work" : shfld }, f, indent="  ")
-with open(json_dir / "sample2.json", "w") as f:
+with open(json_dir / "work-do.json", "w") as f:
     json.dump({ "work" : work }, f, indent="  ")
