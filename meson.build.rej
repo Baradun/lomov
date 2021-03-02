@@ -1,0 +1,12 @@
+diff a/meson.build b/meson.build	(rejected hunks)
+@@ -3,8 +3,8 @@ src = 'main/main.cpp'
+ dep = [dependency('eigen3')]
+ e = executable('main', sources: src, dependencies: dep)
+ 
+-p_e = 'methods.py'
++p_e = 'scripts/methods.py'
+ env = environment()
+ env.set('CORES', '2')
+ env.set('RUNS', '5')
+-run_target('methods', command: p_e)
++run_target('methods', command: p_e, env: env)

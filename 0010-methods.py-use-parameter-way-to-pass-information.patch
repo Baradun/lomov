@@ -1,0 +1,37 @@
+From 32125bb7b32ba1afef2b242619e2b3b1d24a16bd Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Mon, 1 Mar 2021 12:23:06 +0800
+Subject: [PATCH 10/13] methods.py: use parameter-way to pass information
+
+  - in commented code as well.
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ methods.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/methods.py b/methods.py
+index 841d315..c1371c7 100644
+--- a/methods.py
++++ b/methods.py
+@@ -89,7 +89,7 @@ if __name__ == '__main__':
+ 
+     # LOG_FILE_DIR = 'logs/logs_0.1_0.15/'
+     # PARAMS_FILE = 'logs/methods_0.1_0.15.json'
+-    # run()
++    # run('logs/logs_0.1_0.15/', 'logs/methods_0.1_0.15.json')
+ 
+     # print('#'*80)
+     # print('time = ', time.time() - start_time)
+@@ -97,7 +97,7 @@ if __name__ == '__main__':
+ 
+     # LOG_FILE_DIR = 'logs/logs_0.1_0.2/'
+     # PARAMS_FILE = 'logs/methods_0.1_0.2.json'
+-    # run()
++    # run('logs/logs_0.1_0.2/', 'logs/methods_0.1_0.2.json')
+ 
+     # print('#'*80)
+     # print('time = ', time.time() - start_time)
+-- 
+2.30.1
+

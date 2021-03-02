@@ -1,0 +1,59 @@
+From 8ae2735efee23bfe59669cc3af17c7ee8d397d1a Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Mon, 1 Mar 2021 12:20:01 +0800
+Subject: [PATCH 09/13] methods.py: don't use "global" variables to obtain
+
+  - "run" parameters, use function arguments instead.
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ methods.py | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/methods.py b/methods.py
+index cc9d62b..841d315 100644
+--- a/methods.py
++++ b/methods.py
+@@ -30,7 +30,7 @@ def run_subprocess(params):
+         return exeption
+ 
+ 
+-def get_params():
++def get_params(params_file, log_dir):
+     """Set up parameters to run a program.
+ 
+     """
+@@ -38,7 +38,7 @@ def get_params():
+     list_params = []
+ 
+     data = 0
+-    with open(PARAMS_FILE, 'r') as file:
++    with open(params_file, 'r') as file:
+         data = file.read()
+     data_json = json.loads(data)
+ 
+@@ -47,7 +47,7 @@ def get_params():
+         start = str(method_data.get('start'))
+         stop = str(method_data.get('stop'))
+         step = str(method_data.get('step'))
+-        log_file_name = (LOG_FILE_DIR + method_name +
++        log_file_name = (log_dir + method_name +
+                          '_' + start + '_' + stop + '_' + step + '.log')
+ 
+         for j in range(RUNS):
+@@ -103,9 +103,9 @@ if __name__ == '__main__':
+     # print('time = ', time.time() - start_time)
+     # print('#'*80)
+ 
+-    LOG_FILE_DIR = 'logs_0.1_0.3/'
+-    PARAMS_FILE = 'methods_0.1_0.3.json'
+-    run()
++    #  LOG_FILE_DIR = 'logs_0.1_0.3/'
++    #  PARAMS_FILE = 'methods_0.1_0.3.json'
++    run("logs_0.1_0.3/", "methods_0.1_0.3.json")
+ 
+     print("end prgrm")
+     print(time.time() - start_time)
+-- 
+2.30.1
+

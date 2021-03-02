@@ -1,0 +1,33 @@
+From 0b2bdb24b3923ce2e6ff33e9947bbd8456e086f8 Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Mon, 1 Mar 2021 12:15:26 +0800
+Subject: [PATCH 08/13] Added meson.build
+
+  - this is first attempt, it allows to build the project on Archlinux
+    (didn't test the 'methods.py' run yet).
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ meson.build | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+ create mode 100644 meson.build
+
+diff --git a/meson.build b/meson.build
+new file mode 100644
+index 0000000..0c72c4c
+--- /dev/null
++++ b/meson.build
+@@ -0,0 +1,10 @@
++project('main', 'cpp', default_options : ['buildtype=release', 'cpp_std=c++2a', 'warning_level=3', 'werror=true'])
++src = 'main/main.cpp'
++dep = [dependency('eigen3')]
++e = executable('main', sources: src, dependencies: dep)
++
++p_e = 'methods.py'
++env = environment()
++env.set('CORES', '2')
++env.set('RUNS', '5')
++run_target('methods', command: p_e)
+-- 
+2.30.1
+

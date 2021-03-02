@@ -3,6 +3,9 @@ import os
 
 
 def info(file_text):
+    """
+    """
+    
     text_list = file_text.split()
     # method = text[list.index('start') + 2]
     start = text_list[text_list.index('start') + 2]
@@ -15,6 +18,9 @@ def info(file_text):
 
 
 def collect_statistics(folder_name, output_file_name):
+    """
+    """
+
     list_files = os.listdir(folder_name)
     with open(output_file_name, 'w') as output_file:
         for file in list_files:
@@ -33,6 +39,9 @@ def collect_statistics(folder_name, output_file_name):
 
 
 def data_to_graf(folder_name):
+    """
+    """
+
     data_list = []
     list_files = os.listdir(folder_name)
 
@@ -60,6 +69,9 @@ def data_to_graf(folder_name):
 
 
 def make_graf_file(data, start, end, method, graf_type=0):
+    """
+    """
+
     # x = steps; y = err
     if graf_type == 0:
         for i in data:
@@ -93,24 +105,21 @@ def make_graf_file(data, start, end, method, graf_type=0):
                     if (str(start) == i.get('start') and
                         str(end) == i.get('end') and
                             method_name == i.get('method')):
-                        
+
                         step = i.get('step')
                         time = i.get('time')
                         output_file.write(f'{time} {step} \n')
 
-    
     # x = time; y = steps
     if graf_type == 2:
         max_time = float(data[0].get('time'))
         for i in data:
             if (str(start) == i.get('start') and
-                str(end) == i.get('end')):
+                    str(end) == i.get('end')):
 
                 time = float(i.get('time'))
                 if time > max_time:
                     max_time = time
-            
-
 
         for method_name in ['M2', 'M4', 'M6', 'Cf4', 'Cf4_3']:
             with open(f'for_gnuplot_{method_name}.dat', 'w') as output_file:
@@ -125,6 +134,9 @@ def make_graf_file(data, start, end, method, graf_type=0):
 
 
 if __name__ == '__main__':
+    """
+    """
+
     # log_files_dir = 'logs_0.1_0.15'
     # output_file = '0.1_0.15.txt'
     # collect_statistics(log_files_dir, output_file)
@@ -148,4 +160,3 @@ if __name__ == '__main__':
     # print(data)
 
     make_graf_file(data, 0.1, 0.2, 'M4', 1)
- 
