@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import json
 import os
-from multiprocessing import Pool
-import subprocess
+from multiprocessing import Pipe, Pool
+from subprocess import PIPE, Popen
 import time
 
 BASE_DIR = os.getenv('BASE_DIR', 'main')
@@ -19,20 +19,23 @@ def run_subprocess(params):
 
     """
     # params = (start, stop, step, method, output_file)
-    command = './' + BASE_DIR + '/' + RUN_FILE + ' ' + params[0] + \
-        ' ' + params[1] + ' ' + params[2] + ' ' + \
-        params[3] + ' > ' + params[4] + ' 2>&1'
+    command = './' + BASE_DIR + '/' + RUN_FILE + ' ' + params.get('start') + \
+        ' ' + params.get('stop') + ' ' + params.get('step') + ' ' + \
+        params.get('method') + ' > ' + params.get('log_file_name') + ' 2>&1'
 
-    try:
-        result = subprocess.run([command], shell=True, check=True)
-        if result.returncode == 0:
-            return 0
-        return RuntimeError
-    except subprocess.SubprocessError as exeption:
-        return exeption
+    with Popen(command, shell=True, stdout=PIPE) as proc:
+        print(proc) 
+    
+    # try:
+    #     result = subprocess.run([command], shell=True, check=True)
+    #     if result.returncode == 0:
+    #         return 0
+    #     return RuntimeError
+    # except subprocess.SubprocessError as exeption:
+    #     return exeption
 
 
-def get_params(params_file, log_dir):
+def get_params(log_dir, json_params):
     """Set up parameters to run a program.
 
     """
@@ -40,7 +43,7 @@ def get_params(params_file, log_dir):
     list_params = []
 
     data = 0
-    with open(params_file, 'r') as file:
+    with open(json_params, 'r') as file:
         data = file.read()
     data_json = json.loads(data)
 
@@ -53,26 +56,29 @@ def get_params(params_file, log_dir):
                          '_' + start + '_' + stop + '_' + step + '.log')
 
         for j in range(RUNS):
-            list_params.append((
-                start,
-                stop,
-                step,
-                method_name,
-                log_file_name.replace(".log", f'_{j}.log'),
-            ))
+            list_params.append({
+                'start': start,
+                'stop': stop,
+                'step': step,
+                'method': method_name,
+                'log_file_name': log_file_name.replace(".log", f'_{j}.log'),
+            })
 
     return list_params
 
 
-def run():
+def run(log_dir, json_params):
     """Prepare all necessary to run programs in parallel.
 
     """
-    list_params = get_params()
-    process_pool = Pool(CORES)
-    result = process_pool.map(run_subprocess, list_params)
-    print(result)
-
+    os.makedirs(log_dir, exist_ok=True)
+    list_params = get_params(log_dir, json_params)
+    try:
+        process_pool = Pool(CORES)
+        result = process_pool.map(run_subprocess, list_params)
+        print(result)
+    except KeyboardInterrupt as e:
+        process_pool.terminate()
 
     process_pool.close()
     process_pool.join()
@@ -83,31 +89,14 @@ if __name__ == '__main__':
 
     """
 
-    ### We need to prepare some directories.
-    ### LOG_FILE_DIR must exist before all below to be run.
+    # We need to prepare some directories.
+    # LOG_FILE_DIR must exist before all below to be run.
 
     start_time = time.time()
     print('start prgrm')
 
-    # LOG_FILE_DIR = 'logs/logs_0.1_0.15/'
-    # PARAMS_FILE = 'logs/methods_0.1_0.15.json'
-    # run('logs/logs_0.1_0.15/', 'logs/methods_0.1_0.15.json')
-
-    # print('#'*80)
-    # print('time = ', time.time() - start_time)
-    # print('#'*80)
-
-    # LOG_FILE_DIR = 'logs/logs_0.1_0.2/'
-    # PARAMS_FILE = 'logs/methods_0.1_0.2.json'
-    # run('logs/logs_0.1_0.2/', 'logs/methods_0.1_0.2.json')
-
-    # print('#'*80)
-    # print('time = ', time.time() - start_time)
-    # print('#'*80)
-
-    #  LOG_FILE_DIR = 'logs_0.1_0.3/'
-    #  PARAMS_FILE = 'methods_0.1_0.3.json'
-    run("logs_0.1_0.3/", "methods_0.1_0.3.json")
+    run("logs/logs_0.1_0.3/", "logs/methods_0.1_0.3.json")
 
     print("end prgrm")
     print(time.time() - start_time)
+ 
