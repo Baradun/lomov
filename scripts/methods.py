@@ -2,7 +2,6 @@
 
 import json
 import os
-import io
 from multiprocessing import Pool
 from pathlib import Path
 import subprocess
