@@ -148,6 +148,13 @@ if __name__ == '__main__':
     """Main 'module' of the script.
     """
 
+    if not os.path.isdir(Path(DATA_DIR)):
+        print(f"We expect data to be in '{DATA_DIR}' directory, but it missing!")
+        sys.exit(1)
+
+    if not os.path.isdir(Path(OUT_DIR)):
+        os.mkdir(Path(OUT_DIR))
+
     # log_files_dir = 'logs_0.1_0.15'
     # output_file = '0.1_0.15.txt'
     # collect_statistics(log_files_dir, output_file)
