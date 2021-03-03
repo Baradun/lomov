@@ -52,6 +52,14 @@ def get_data():
     data_list = []
     list_files = os.listdir(DATA_DIR)
 
+    #  data_t = {k: [] for k in METHODS}
+    #  for m in METHODS:
+    #      for f in Path(DATA_DIR).glob(m + '*.dat'):
+    #          with open(f, 'r') as fil:
+    #              data = fil.read()
+    #              start, end, step, time, P = info(data)
+    #              data_t[m].append()
+
     for dat_file in list_files:
 
         if dat_file.startswith(METHODS[4]):
@@ -107,19 +115,6 @@ def make_gp_dat(data, start, end, method, graf_type=0):
                         P = i['P']
                         gp_dat.write(f'{step} {err} {P}\n')
 
-        #  with open(Path(OUT_DIR)/"gt0.dat", "w") as gp_dat:
-        #      gp_dat.write(f"## STEP\tREL_ERR(M2)\tREL_ERR(M4)\t\
-        #              REL_ERR(M6)\tREL_ERR(CF4)\tREL_ERR(CF4:3)\t\
-        #              SUR_PROB(M2)\tSUR_PROB(M4)\tSUR_PROB(M6)\t\
-        #              SUR_PROB(CF4)\tSUR_PROB(CF4:3)\n")
-        #      for i in data:
-        #          step = i['step']
-        #          m2   = i['M2']
-        #          m4   = i['M4']
-        #          m6   = i['M6']
-        #          cf4  = i['CF4']
-        #          cf43 = i['CF4:3']
-        #          gp_dat.write(f"{step}\t{m2}\t{m4}\t{m6}\t{cf4}\t{cf43}\n")
 
     # x = step; y = time
     if graf_type == 1:
@@ -134,19 +129,6 @@ def make_gp_dat(data, start, end, method, graf_type=0):
                         step = i['step']
                         time = i['time']
                         gp_dat.write(f'{step} {time}\n')
-
-        with open(Path(OUT_DIR)/"gt1.dat", "w") as gp_dat:
-            gp_dat.write(f"## STEP\tEXEC TIME(M2)\tEXEC TIME(M4)\t\
-                    EXEC TIME(M6)\tEXEC TIME(CF4)\tEXEC TIME(CF4:3)\n")
-            for i in data:
-                step = i['step']
-                time = i['time']
-                m2   = i['M2']
-                m4   = i['M4']
-                m6   = i['M6']
-                cf4  = i['CF4']
-                cf43 = i['CF4:3']
-                gp_dat.write(f"{step}\t{m2}\t{m4}\t{m6}\t{cf4}\t{cf43}\n")
 
     
     # x = step; y = time
