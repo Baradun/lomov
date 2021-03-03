@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 
+"""
+Generate json files to get data for statistics on used methods.
+"""
+
 import json
 import os
+import sys
 from pathlib import Path
 import random
 
@@ -11,11 +16,17 @@ rngs = [ (0.1, 0.15), (0.1, 0.2), (0.1, 0.3) ]
 
 work = []
 
-json_dir = Path("methods")
+JSON_DIR = Path("methods")
 
-## We didn't handle the case when json_dir exists but not a directory.
-if not os.path.isdir(json_dir):
-    os.mkdir(json_dir)
+if not os.path.isdir(JSON_DIR):
+    try:
+        os.mkdir(JSON_DIR)
+    except FileExistsError as err:
+        print(f"We need directory '{JSON_DIR}' to store generated file but we \
+                got error while trying to create one: {err}")
+    except:
+        print("Unexpected error: ", sys.exc_info()[0])
+        raise
 
 for r in rngs:
     for m in methods:
@@ -28,7 +39,7 @@ for r in rngs:
 
 shfld = random.sample(work, k=len(work))
 
-with open(json_dir / "work.json", "w") as f:
+with open(JSON_DIR / "work.json", "w") as f:
     json.dump({ "work" : shfld }, f, indent="  ")
-with open(json_dir / "work-do.json", "w") as f:
+with open(JSON_DIR / "work-do.json", "w") as f:
     json.dump({ "work" : work }, f, indent="  ")

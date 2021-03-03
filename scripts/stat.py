@@ -153,7 +153,14 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if not os.path.isdir(Path(OUT_DIR)):
-        os.mkdir(Path(OUT_DIR))
+        try:
+            os.mkdir(Path(OUT_DIR))
+        except FileExistsError as err:
+            print(f"We need directory '{OUT_DIR}' to store generated file but \
+                    we got error while trying to create one: {err}")
+        except:
+            print("Unexpected error: ", sys.exc_info()[0])
+            raise
 
     # log_files_dir = 'logs_0.1_0.15'
     # output_file = '0.1_0.15.txt'

@@ -12,6 +12,9 @@ BASE_DIR = os.getenv('BASE_DIR', 'main')
 RUN_FILE = os.getenv('RUN_FILE', "main")
 RUNS = int(os.getenv('RUNS', '10'))
 CORES = int(os.getenv('CORES', '12'))
+DATA_DIR = os.getenv('DATA_DIR', 'data')
+JSON_DIR = os.getenv('JSON_DIR', 'methods')
+JSON_WORK = os.getenv('JSON_WORK', 'work.json')
 SCRIPT_DIR = os.getenv('MESON_SOURCE_ROOT', '.')
 WDIR = os.getenv('MESON_BUILD_ROOT', '.')
 
@@ -86,13 +89,22 @@ def run(data_dir, json_file):
 
 if __name__ == '__main__':
 
-    data_dir = Path("data")
+    data_dir = Path(DATA_DIR)
     if not os.path.isdir(data_dir):
-        os.mkdir(data_dir)
+        try:
+            os.mkdir(data_dir)
+        except FileExistsError as err:
+            print(f"We need directory '{DATA_DIR}' to save generated data but \
+                    we got error while trying to create one: {err}")
+        except:
+            print("Unexpected error: ", sys.exc_info()[0])
+            raise
 
-    json_dir = Path("methods")
+    json_dir = Path(JSON_DIR)
     if not os.path.isdir(json_dir):
-        print(f"Can't work without '{json_dir}' directory with json files!")
+        print(f"We expect that JSON file with work load should be in \
+                '{JSON_DIR}' directory but that one doesn't exist or is not a \
+                directory!")
         sys.exit(1)
 
     start_time = time.time()
@@ -116,9 +128,9 @@ if __name__ == '__main__':
 
     #  LOG_FILE_DIR = 'logs_0.1_0.3/'
     #  PARAMS_FILE = 'methods_0.1_0.3.json'
-    json_file = json_dir / "work.json"
+    json_file = json_dir / JSON_WORK
     if not os.path.isfile(json_file):
-        print(f"Can't do this run, we need a '{json_file}' in '{json_dir}'!")
+        print(f"Can't do anything, we need a '{JSON_WORK}' in '{JSON_DIR}'!")
         sys.exit(2)
     run(data_dir, json_file)
 
