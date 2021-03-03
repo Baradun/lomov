@@ -3,9 +3,12 @@ src = 'main/main.cpp'
 dep = [dependency('eigen3')]
 e = executable('main', sources: src, dependencies: dep)
 
-p_e = '@SOURCE_ROOT@/scripts/methods.py'
+meth_e = find_program('scripts' / 'methods.py')
+gen_e = find_program('scripts' / 'gen-work.py')
 env = environment()
 env.set('BASE_DIR', '.')
 env.set('CORES', '2')
 env.set('RUNS', '5')
-run_target('methods', command: [ p_e ], env: env)
+run_target('gen-work', command: gen_e)
+run_target('methods', command: meth_e, env: env)
+# run_target('methods', command: meth_e, depends: ['gen-work'], env: env)
