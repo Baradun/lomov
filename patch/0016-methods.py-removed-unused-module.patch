@@ -1,0 +1,25 @@
+From 995c2bd3a962a620d05ac9e4e78726c5a95849e3 Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Tue, 2 Mar 2021 08:57:14 +0800
+Subject: [PATCH 16/30] methods.py: removed unused module
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ scripts/methods.py | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/scripts/methods.py b/scripts/methods.py
+index 678c4af..21b0389 100755
+--- a/scripts/methods.py
++++ b/scripts/methods.py
+@@ -2,7 +2,6 @@
+ 
+ import json
+ import os
+-import io
+ from multiprocessing import Pool
+ from pathlib import Path
+ import subprocess
+-- 
+2.30.1
+

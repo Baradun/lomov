@@ -1,0 +1,28 @@
+From 902ffef4ea4150b977af2bca844026b416640c5e Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Tue, 2 Mar 2021 09:19:05 +0800
+Subject: [PATCH 20/30] scripts/methods.py: use 'work' instead of
+
+  - 'methods' as container for list of methods.
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ scripts/methods.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/methods.py b/scripts/methods.py
+index afae810..f8b930f 100755
+--- a/scripts/methods.py
++++ b/scripts/methods.py
+@@ -48,7 +48,7 @@ def get_params(params_file, data_dir):
+         data = file.read()
+     data_json = json.loads(data)
+ 
+-    for method_data in data_json.get('methods'):
++    for method_data in data_json.get('work'):
+         method_name = method_data.get('method')
+         start = str(method_data.get('start'))
+         stop = str(method_data.get('stop'))
+-- 
+2.30.1
+

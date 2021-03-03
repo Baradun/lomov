@@ -1,0 +1,216 @@
+From 3b070d470993b0b0ddbd909e4653c37f1362a8e2 Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Tue, 2 Mar 2021 10:43:07 +0800
+Subject: [PATCH 23/30] scripts/stat.py: updated code but didn't test it yet
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ scripts/stat.py | 121 ++++++++++++++++++++++++++----------------------
+ 1 file changed, 65 insertions(+), 56 deletions(-)
+
+diff --git a/scripts/stat.py b/scripts/stat.py
+index 7358a22..545e423 100755
+--- a/scripts/stat.py
++++ b/scripts/stat.py
+@@ -2,13 +2,18 @@
+ 
+ import json
+ import os
++from pathlib import Path
+ 
++DATA_DIR = os.getenv("METHODS_DATA_DIR", "data")
++OUT_DIR = os.getenv("METHODS_GRAPH_DIR", "graphs")
++METHODS = [ "M2", "M4", "M6", "CF4", "CF4:3" ]
++MAX_STEP = '1e-10'
+ 
+-def info(file_text):
+-    """Extract and return a list of necessary parameters from a file.
++def info(content):
++    """Extract and return a list of necessary parameters from a file content.
+     """
+ 
+-    text_list = file_text.split()
++    text_list = content.split()
+     # method = text[list.index('start') + 2]
+     start = text_list[text_list.index('start') + 2]
+     end = text_list[text_list.index('end') + 2]
+@@ -27,10 +32,10 @@ def collect_statistics(folder_name, output_file_name):
+     with open(output_file_name, 'w') as output_file:
+         for file in list_files:
+ 
+-            if file.startswith('Cf4_3'):
+-                method = 'Cf4_3'
+-            elif file.startswith('Cf4'):
+-                method = 'Cf4'
++            if file.startswith(METHODS[4]):
++                method = METHODS[4]
++            elif file.startswith(METHODS[3]):
++                method = METHODS[3]
+             else:
+                 method = file[0:2]
+ 
+@@ -40,23 +45,23 @@ def collect_statistics(folder_name, output_file_name):
+                 output_file.write(f'{method} {start} {end} {step} {time}\n')
+ 
+ 
+-def data_to_graf(folder_name):
++def get_data():
+     """Get data from a file for gnuplot plotting.
+     """
+ 
+     data_list = []
+-    list_files = os.listdir(folder_name)
++    list_files = os.listdir(DATA_DIR)
+ 
+-    for log_file in list_files:
++    for dat_file in list_files:
+ 
+-        if log_file.startswith('Cf4_3'):
+-            method = 'Cf4_3'
+-        elif log_file.startswith('Cf4'):
+-            method = 'Cf4'
++        if dat_file.startswith(METHODS[4]):
++            method = METHODS[4]
++        elif dat_file.startswith(METHODS[3]):
++            method = METHODS[3]
+         else:
+-            method = log_file[0:2]
++            method = dat_file[0:2]
+ 
+-        with open(f'{folder_name}/{log_file}', 'r') as f:
++        with open(Path(DATA_DIR / f'{dat_file}'), 'r') as f:
+             data = f.read()
+             start, end, step, time, P = info(data)
+             data_list.append({
+@@ -70,72 +75,73 @@ def data_to_graf(folder_name):
+     return data_list
+ 
+ 
+-def make_graf_file(data, start, end, method, graf_type=0):
+-    """Make plots for interested relations.
++def make_gp_dat(data, start, end, method, graf_type=0):
++    """Make data files to be plotted by gnuplot.
++
++    Prefix data files with graph type.
+     """
+ 
+     # x = steps; y = err
+     if graf_type == 0:
+         for i in data:
+-            if (str(start) == i.get('start') and
+-                str(end) == i.get('end') and
+-                method == i.get('method') and
+-                    '1e-10' == i.get('step')):
++            if (str(start)   == i['start']  and
++                str(end)     == i['end']    and
++                method       == i['method'] and
++                MAX_STEP     == i['step']   ):
+ 
+                 basis = i
+                 print(basis)
+                 break
+ 
+-        for method_name in ['M2', 'M4', 'M6', 'Cf4', 'Cf4_3']:
+-            with open(f'for_gnuplot_{method_name}.dat', 'w') as output_file:
++        for method_name in METHODS:
++            with open(Path(OUT_DIR / f'gt0_{method_name}.dat'), 'w') as gp_dat:
+                 for i in data:
+-                    if (str(start) == i.get('start') and
+-                        str(end) == i.get('end') and
+-                            method_name == i.get('method')):
++                    if (str(start)   == i['start'] and
++                        str(end)     == i['end']   and
++                         method_name == i['method']):
+ 
+-                        err = abs(float(i.get('P')) -
+-                                  float(basis.get('P'))) / float(basis.get('P'))
+-                        step = i.get('step')
+-                        P = i.get('P')
+-                        output_file.write(f'{step} {err} {P}\n')
++                        err = abs(float(i['P']) -
++                                  float(basis['P'])) / float(basis['P'])
++                        step = i['step']
++                        P = i['P']
++                        gp_dat.write(f'{step} {err} {P}\n')
+ 
+     # x = time; y = steps
+     if graf_type == 1:
+-        for method_name in ['M2', 'M4', 'M6', 'Cf4', 'Cf4_3']:
+-            with open(f'for_gnuplot_{method_name}.dat', 'w') as output_file:
++        for method_name in METHODS:
++            with open(Path(OUT_DIR / f'gt1_{method_name}.dat'), 'w') as gp_dat:
+                 for i in data:
+-                    if (str(start) == i.get('start') and
+-                        str(end) == i.get('end') and
+-                            method_name == i.get('method')):
++                    if (str(start)  == i['start'] and
++                        str(end)    == i['end']   and
++                        method_name == i['method']):
+                         
+-                        step = i.get('step')
+-                        time = i.get('time')
+-                        output_file.write(f'{time} {step} \n')
++                        step = i['step']
++                        time = i['time']
++                        gp_dat.write(f'{time} {step} \n')
+ 
+     
+     # x = time; y = steps
+     if graf_type == 2:
+-        max_time = float(data[0].get('time'))
++        max_time = float(data[0]['time'])
+         for i in data:
+-            if (str(start) == i.get('start') and
+-                str(end) == i.get('end')):
++            if (str(start) == i['start'] and
++                str(end)   == i['end']   ):
+ 
+-                time = float(i.get('time'))
++                time = float(i['time'])
+                 if time > max_time:
+                     max_time = time
+-            
+ 
+ 
+-        for method_name in ['M2', 'M4', 'M6', 'Cf4', 'Cf4_3']:
+-            with open(f'for_gnuplot_{method_name}.dat', 'w') as output_file:
++        for method_name in METHODS:
++            with open(Path(OUT_DIR / f'gt2_{method_name}.dat'), 'w') as gp_dat:
+                 for i in data:
+-                    if (str(start) == i.get('start') and
+-                        str(end) == i.get('end') and
+-                            method_name == i.get('method')):
++                    if (str(start)  == i['start'] and
++                        str(end)    == i['end']   and
++                        method_name == i['method']):
+ 
+-                        step = i.get('step')
+-                        time = float(i.get('time')) / max_time
+-                        output_file.write(f'{time} {step} \n')
++                        step = i['step']
++                        time = float(i['time']) / max_time
++                        gp_dat.write(f'{time} {step} \n')
+ 
+ 
+ if __name__ == '__main__':
+@@ -157,11 +163,14 @@ if __name__ == '__main__':
+     # log_files_dir = 'logs/logs_0.1_0.15'
+     # data.append(data_to_graf(log_files_dir))
+ 
+-    log_files_dir = 'logs/logs_0.1_0.2'
+-    data = (data_to_graf(log_files_dir))
++    # Do we need () around?
++    data = (get_data())
+ 
+     # log_files_dir = 'logs/logs_0.1_0.25'
+     # data.append(data_to_graf(log_files_dir)[0])
+     # print(data)
+ 
+-    make_graf_file(data, 0.1, 0.2, 'M4', 1)
++    h_m = "M6"
++    start = 0.1
++    end = 0.2
++    make_gp_dat(data, start, end, h_m, 1)
+-- 
+2.30.1
+

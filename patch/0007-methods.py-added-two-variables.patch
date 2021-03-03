@@ -1,0 +1,39 @@
+From b09a6a7ee60765f1485603d8bbb155bc90d837da Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Mon, 1 Mar 2021 12:13:47 +0800
+Subject: [PATCH 07/30] methods.py: added two variables
+
+  - to make the script being run by meson. Commented that necessary
+    directories must exist before script run.
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ methods.py | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/methods.py b/methods.py
+index 10fc80a..cc9d62b 100644
+--- a/methods.py
++++ b/methods.py
+@@ -8,6 +8,8 @@ BASE_DIR = os.getenv('BASE_DIR', 'main')
+ RUN_FILE = os.getenv('RUN_FILE', "main")
+ RUNS = os.getenv('RUNS', 10)
+ CORES = os.getenv('CORES', 12)
++SCRIPT_DIR = os.getenv('MESON_SOURCE_ROOT', '.')
++WDIR = os.getenv('MESON_BUILD_ROOT', '.')
+ 
+ 
+ def run_subprocess(params):
+@@ -79,6 +81,9 @@ if __name__ == '__main__':
+ 
+     """
+ 
++    ### We need to prepare some directories.
++    ### LOG_FILE_DIR must exist before all below to be run.
++
+     start_time = time.time()
+     print('start prgrm')
+ 
+-- 
+2.30.1
+

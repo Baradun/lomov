@@ -1,0 +1,64 @@
+From b8f31b8e810aa9b56291ae1b129b69e8af5005a0 Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Mon, 1 Mar 2021 14:39:25 +0800
+Subject: [PATCH 13/30] meson.build: trying to get 'methods' target to work
+
+  - methods.py: added shebang line.
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ meson.build        | 5 +++--
+ scripts/methods.py | 6 ++++--
+ scripts/stat.py    | 0
+ 3 files changed, 7 insertions(+), 4 deletions(-)
+ mode change 100644 => 100755 scripts/methods.py
+ mode change 100644 => 100755 scripts/stat.py
+
+diff --git a/meson.build b/meson.build
+index a10afe5..52a05cb 100644
+--- a/meson.build
++++ b/meson.build
+@@ -3,8 +3,9 @@ src = 'main/main.cpp'
+ dep = [dependency('eigen3')]
+ e = executable('main', sources: src, dependencies: dep)
+ 
+-p_e = 'scripts/methods.py'
++p_e = '@SOURCE_ROOT@/scripts/methods.py'
+ env = environment()
++env.set('BASE_DIR', '.')
+ env.set('CORES', '2')
+ env.set('RUNS', '5')
+-run_target('methods', command: p_e, env: env)
++run_target('methods', command: [ p_e ], env: env)
+diff --git a/scripts/methods.py b/scripts/methods.py
+old mode 100644
+new mode 100755
+index c1371c7..3240cb4
+--- a/scripts/methods.py
++++ b/scripts/methods.py
+@@ -1,3 +1,5 @@
++#!/usr/bin/env python
++
+ import json
+ import os
+ from multiprocessing import Pool
+@@ -62,11 +64,11 @@ def get_params(params_file, log_dir):
+     return list_params
+ 
+ 
+-def run():
++def run(log_dir, json_file):
+     """Prepare all necessary to run programs in parallel.
+ 
+     """
+-    list_params = get_params()
++    list_params = get_params(json_file, log_dir)
+     process_pool = Pool(CORES)
+     result = process_pool.map(run_subprocess, list_params)
+     print(result)
+diff --git a/scripts/stat.py b/scripts/stat.py
+old mode 100644
+new mode 100755
+-- 
+2.30.1
+

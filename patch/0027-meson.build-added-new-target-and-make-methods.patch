@@ -1,0 +1,34 @@
+From 61fce9627638fae39df5ac2ed7acca31320560a2 Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Wed, 3 Mar 2021 08:11:29 +0800
+Subject: [PATCH 27/30] meson.build: added new 'target' and make 'methods'
+
+  - one depends on it (didn't check yet).
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ meson.build | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/meson.build b/meson.build
+index 52a05cb..fdc2a39 100644
+--- a/meson.build
++++ b/meson.build
+@@ -3,9 +3,12 @@ src = 'main/main.cpp'
+ dep = [dependency('eigen3')]
+ e = executable('main', sources: src, dependencies: dep)
+ 
+-p_e = '@SOURCE_ROOT@/scripts/methods.py'
++meth_e = find_program('scripts' / 'methods.py')
++gen_e = find_program('scripts' / 'gen-work.py')
+ env = environment()
+ env.set('BASE_DIR', '.')
+ env.set('CORES', '2')
+ env.set('RUNS', '5')
+-run_target('methods', command: [ p_e ], env: env)
++run_target('gen-work', command: gen_e)
++run_target('methods', command: meth_e, env: env)
++# run_target('methods', command: meth_e, depends: ['gen-work'], env: env)
+-- 
+2.30.1
+

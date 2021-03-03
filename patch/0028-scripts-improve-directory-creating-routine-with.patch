@@ -1,0 +1,140 @@
+From 4586b7a0f50f6d4b0a407e70f8b32c6b21b4e80a Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Wed, 3 Mar 2021 08:40:07 +0800
+Subject: [PATCH 28/30] scripts: improve directory creating routine with
+
+  - error handling.
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ scripts/gen-work.py | 23 +++++++++++++++++------
+ scripts/methods.py  | 26 +++++++++++++++++++-------
+ scripts/stat.py     |  9 ++++++++-
+ 3 files changed, 44 insertions(+), 14 deletions(-)
+
+diff --git a/scripts/gen-work.py b/scripts/gen-work.py
+index e5b3eee..29cdc32 100755
+--- a/scripts/gen-work.py
++++ b/scripts/gen-work.py
+@@ -1,7 +1,12 @@
+ #!/usr/bin/env python
+ 
++"""
++Generate json files to get data for statistics on used methods.
++"""
++
+ import json
+ import os
++import sys
+ from pathlib import Path
+ import random
+ 
+@@ -11,11 +16,17 @@ rngs = [ (0.1, 0.15), (0.1, 0.2), (0.1, 0.3) ]
+ 
+ work = []
+ 
+-json_dir = Path("methods")
++JSON_DIR = Path("methods")
+ 
+-## We didn't handle the case when json_dir exists but not a directory.
+-if not os.path.isdir(json_dir):
+-    os.mkdir(json_dir)
++if not os.path.isdir(JSON_DIR):
++    try:
++        os.mkdir(JSON_DIR)
++    except FileExistsError as err:
++        print(f"We need directory '{JSON_DIR}' to store generated file but we \
++                got error while trying to create one: {err}")
++    except:
++        print("Unexpected error: ", sys.exc_info()[0])
++        raise
+ 
+ for r in rngs:
+     for m in methods:
+@@ -28,7 +39,7 @@ for r in rngs:
+ 
+ shfld = random.sample(work, k=len(work))
+ 
+-with open(json_dir / "work.json", "w") as f:
++with open(JSON_DIR / "work.json", "w") as f:
+     json.dump({ "work" : shfld }, f, indent="  ")
+-with open(json_dir / "work-do.json", "w") as f:
++with open(JSON_DIR / "work-do.json", "w") as f:
+     json.dump({ "work" : work }, f, indent="  ")
+diff --git a/scripts/methods.py b/scripts/methods.py
+index c57be80..ed397cb 100755
+--- a/scripts/methods.py
++++ b/scripts/methods.py
+@@ -12,6 +12,9 @@ BASE_DIR = os.getenv('BASE_DIR', 'main')
+ RUN_FILE = os.getenv('RUN_FILE', "main")
+ RUNS = int(os.getenv('RUNS', '10'))
+ CORES = int(os.getenv('CORES', '12'))
++DATA_DIR = os.getenv('DATA_DIR', 'data')
++JSON_DIR = os.getenv('JSON_DIR', 'methods')
++JSON_WORK = os.getenv('JSON_WORK', 'work.json')
+ SCRIPT_DIR = os.getenv('MESON_SOURCE_ROOT', '.')
+ WDIR = os.getenv('MESON_BUILD_ROOT', '.')
+ 
+@@ -86,13 +89,22 @@ def run(data_dir, json_file):
+ 
+ if __name__ == '__main__':
+ 
+-    data_dir = Path("data")
++    data_dir = Path(DATA_DIR)
+     if not os.path.isdir(data_dir):
+-        os.mkdir(data_dir)
+-
+-    json_dir = Path("methods")
++        try:
++            os.mkdir(data_dir)
++        except FileExistsError as err:
++            print(f"We need directory '{DATA_DIR}' to save generated data but \
++                    we got error while trying to create one: {err}")
++        except:
++            print("Unexpected error: ", sys.exc_info()[0])
++            raise
++
++    json_dir = Path(JSON_DIR)
+     if not os.path.isdir(json_dir):
+-        print(f"Can't work without '{json_dir}' directory with json files!")
++        print(f"We expect that JSON file with work load should be in \
++                '{JSON_DIR}' directory but that one doesn't exist or is not a \
++                directory!")
+         sys.exit(1)
+ 
+     start_time = time.time()
+@@ -116,9 +128,9 @@ if __name__ == '__main__':
+ 
+     #  LOG_FILE_DIR = 'logs_0.1_0.3/'
+     #  PARAMS_FILE = 'methods_0.1_0.3.json'
+-    json_file = json_dir / "work.json"
++    json_file = json_dir / JSON_WORK
+     if not os.path.isfile(json_file):
+-        print(f"Can't do this run, we need a '{json_file}' in '{json_dir}'!")
++        print(f"Can't do anything, we need a '{JSON_WORK}' in '{JSON_DIR}'!")
+         sys.exit(2)
+     run(data_dir, json_file)
+ 
+diff --git a/scripts/stat.py b/scripts/stat.py
+index 5d3dcaa..249ddcc 100755
+--- a/scripts/stat.py
++++ b/scripts/stat.py
+@@ -153,7 +153,14 @@ if __name__ == '__main__':
+         sys.exit(1)
+ 
+     if not os.path.isdir(Path(OUT_DIR)):
+-        os.mkdir(Path(OUT_DIR))
++        try:
++            os.mkdir(Path(OUT_DIR))
++        except FileExistsError as err:
++            print(f"We need directory '{OUT_DIR}' to store generated file but \
++                    we got error while trying to create one: {err}")
++        except:
++            print("Unexpected error: ", sys.exc_info()[0])
++            raise
+ 
+     # log_files_dir = 'logs_0.1_0.15'
+     # output_file = '0.1_0.15.txt'
+-- 
+2.30.1
+

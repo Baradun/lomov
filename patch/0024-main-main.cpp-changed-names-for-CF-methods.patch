@@ -1,0 +1,30 @@
+From f58f5df3ebc19d09f97cc8918b157b8d08d24c19 Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Tue, 2 Mar 2021 10:45:02 +0800
+Subject: [PATCH 24/30] main/main.cpp: changed names for CF methods
+
+  - to sync with python scripts changes.
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ main/main.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/main/main.cpp b/main/main.cpp
+index 765fe7a..bca0dc2 100644
+--- a/main/main.cpp
++++ b/main/main.cpp
+@@ -373,8 +373,8 @@ int main(int argc, char *argv[])
+     if (mthd == "M2") v = test.M2();
+     if (mthd == "M4") v = test.M4();
+     if (mthd == "M6") v = test.M6();
+-    if (mthd == "Cf4") v = test.Cf4();
+-    if (mthd == "Cf4_3") v = test.Cf4_3();
++    if (mthd == "CF4") v = test.Cf4();
++    if (mthd == "CF4:3") v = test.Cf4_3();
+ 
+     auto end_time = std::chrono::high_resolution_clock::now();
+     std::chrono::duration<double> time = (end_time - start_time);
+-- 
+2.30.1
+

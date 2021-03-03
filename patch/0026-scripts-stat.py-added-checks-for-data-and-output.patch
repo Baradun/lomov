@@ -1,0 +1,34 @@
+From 1acf3a946f88ec0a6e497019f68c5f34fee29515 Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Wed, 3 Mar 2021 08:10:38 +0800
+Subject: [PATCH 26/30] scripts/stat.py: added checks for data and output
+
+  - directory existence (we don't currently check if there is a NOT
+    directory with the same name).
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ scripts/stat.py | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/scripts/stat.py b/scripts/stat.py
+index 545e423..5d3dcaa 100755
+--- a/scripts/stat.py
++++ b/scripts/stat.py
+@@ -148,6 +148,13 @@ if __name__ == '__main__':
+     """Main 'module' of the script.
+     """
+ 
++    if not os.path.isdir(Path(DATA_DIR)):
++        print(f"We expect data to be in '{DATA_DIR}' directory, but it missing!")
++        sys.exit(1)
++
++    if not os.path.isdir(Path(OUT_DIR)):
++        os.mkdir(Path(OUT_DIR))
++
+     # log_files_dir = 'logs_0.1_0.15'
+     # output_file = '0.1_0.15.txt'
+     # collect_statistics(log_files_dir, output_file)
+-- 
+2.30.1
+

@@ -1,0 +1,32 @@
+From 8d97b5d2a9678ef85880154dfd9c47665acf6221 Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Wed, 3 Mar 2021 10:55:28 +0800
+Subject: [PATCH 29/30] meson.build: trying to use depends on 'methods' target
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ meson.build | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/meson.build b/meson.build
+index fdc2a39..691f7d2 100644
+--- a/meson.build
++++ b/meson.build
+@@ -5,10 +5,12 @@ e = executable('main', sources: src, dependencies: dep)
+ 
+ meth_e = find_program('scripts' / 'methods.py')
+ gen_e = find_program('scripts' / 'gen-work.py')
++stat_e = find_program('scripts' / 'stat.py')
+ env = environment()
+ env.set('BASE_DIR', '.')
+ env.set('CORES', '2')
+ env.set('RUNS', '5')
+ run_target('gen-work', command: gen_e)
+-run_target('methods', command: meth_e, env: env)
+-# run_target('methods', command: meth_e, depends: ['gen-work'], env: env)
++run_target('stats', command: stat_e)
++# run_target('methods', command: meth_e, env: env)
++run_target('methods', command: meth_e, depends: ['gen-work'], env: env)
+-- 
+2.30.1
+

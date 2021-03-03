@@ -1,16 +1,17 @@
 import json
+import os
 from multiprocessing import Pool
 import subprocess
 import time
 
-BASE_DIR = 'main/'
-RUN_FILE = 'main'
-RUNS = 10
-CORES = 12
+BASE_DIR = os.getenv('BASE_DIR', 'main')
+RUN_FILE = os.getenv('RUN_FILE', "main")
+RUNS = os.getenv('RUNS', 10)
+CORES = os.getenv('CORES', 12)
 
 
 def run_subprocess(params):
-    """"
+    """Run a program with given parameters.
 
     """
     # params = (start, stop, step, method, output_file)
@@ -28,7 +29,7 @@ def run_subprocess(params):
 
 
 def get_params():
-    """
+    """Set up parameters to run a program.
 
     """
 
@@ -60,7 +61,7 @@ def get_params():
 
 
 def run():
-    """
+    """Prepare all necessary to run programs in parallel.
 
     """
     list_params = get_params()
@@ -74,6 +75,9 @@ def run():
 
 
 if __name__ == '__main__':
+    """Main 'module' of the script.
+
+    """
 
     start_time = time.time()
     print('start prgrm')

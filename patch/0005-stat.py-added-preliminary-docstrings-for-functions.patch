@@ -1,0 +1,67 @@
+From 7a8aadcf642cf80c4529d0cf42548011eb0a889a Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Sun, 28 Feb 2021 12:39:28 +0800
+Subject: [PATCH 05/30] stat.py: added preliminary docstrings for functions
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ stat.py | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/stat.py b/stat.py
+index 96b1a29..a0755ce 100644
+--- a/stat.py
++++ b/stat.py
+@@ -3,7 +3,7 @@ import os
+ 
+ 
+ def info(file_text):
+-    """
++    """Extract and return a list of necessary parameters from a file.
+     """
+ 
+     text_list = file_text.split()
+@@ -18,7 +18,7 @@ def info(file_text):
+ 
+ 
+ def collect_statistics(folder_name, output_file_name):
+-    """
++    """Write data to a file being plotted by gnuplot.
+     """
+ 
+     list_files = os.listdir(folder_name)
+@@ -39,7 +39,7 @@ def collect_statistics(folder_name, output_file_name):
+ 
+ 
+ def data_to_graf(folder_name):
+-    """
++    """Get data from a file for gnuplot plotting.
+     """
+ 
+     data_list = []
+@@ -69,7 +69,7 @@ def data_to_graf(folder_name):
+ 
+ 
+ def make_graf_file(data, start, end, method, graf_type=0):
+-    """
++    """Make plots for interested relations.
+     """
+ 
+     # x = steps; y = err
+@@ -137,7 +137,7 @@ def make_graf_file(data, start, end, method, graf_type=0):
+ 
+ 
+ if __name__ == '__main__':
+-    """
++    """Main 'module' of the script.
+     """
+ 
+     # log_files_dir = 'logs_0.1_0.15'
+@@ -163,4 +163,3 @@ if __name__ == '__main__':
+     # print(data)
+ 
+     make_graf_file(data, 0.1, 0.2, 'M4', 1)
+- 
+-- 
+2.30.1
+

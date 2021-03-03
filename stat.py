@@ -3,6 +3,9 @@ import os
 
 
 def info(file_text):
+    """
+    """
+
     text_list = file_text.split()
     # method = text[list.index('start') + 2]
     start = text_list[text_list.index('start') + 2]
@@ -15,6 +18,9 @@ def info(file_text):
 
 
 def collect_statistics(folder_name, output_file_name):
+    """
+    """
+
     list_files = os.listdir(folder_name)
     with open(output_file_name, 'w') as output_file:
         for file in list_files:
@@ -33,6 +39,9 @@ def collect_statistics(folder_name, output_file_name):
 
 
 def data_to_graf(folder_name):
+    """
+    """
+
     data_list = []
     list_files = os.listdir(folder_name)
 
@@ -60,6 +69,9 @@ def data_to_graf(folder_name):
 
 
 def make_graf_file(data, start, end, method, graf_type=0):
+    """
+    """
+
     # x = steps; y = err
     if graf_type == 0:
         for i in data:
@@ -125,6 +137,9 @@ def make_graf_file(data, start, end, method, graf_type=0):
 
 
 if __name__ == '__main__':
+    """
+    """
+
     # log_files_dir = 'logs_0.1_0.15'
     # output_file = '0.1_0.15.txt'
     # collect_statistics(log_files_dir, output_file)

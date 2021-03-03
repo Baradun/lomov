@@ -1,0 +1,28 @@
+From 71abe7c2b2ed33e5e74bdf6ccd83f9ce6307cf73 Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Mon, 1 Mar 2021 14:21:39 +0800
+Subject: [PATCH 11/30] meson.build: use environment, use relative path
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ meson.build | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/meson.build b/meson.build
+index 0c72c4c..a10afe5 100644
+--- a/meson.build
++++ b/meson.build
+@@ -3,8 +3,8 @@ src = 'main/main.cpp'
+ dep = [dependency('eigen3')]
+ e = executable('main', sources: src, dependencies: dep)
+ 
+-p_e = 'methods.py'
++p_e = 'scripts/methods.py'
+ env = environment()
+ env.set('CORES', '2')
+ env.set('RUNS', '5')
+-run_target('methods', command: p_e)
++run_target('methods', command: p_e, env: env)
+-- 
+2.30.1
+
