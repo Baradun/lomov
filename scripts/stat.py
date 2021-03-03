@@ -61,7 +61,7 @@ def get_data():
         else:
             method = dat_file[0:2]
 
-        with open(Path(DATA_DIR / f'{dat_file}'), 'r') as f:
+        with open(Path(DATA_DIR)/dat_file, 'r') as f:
             data = f.read()
             start, end, step, time, P = info(data)
             data_list.append({
@@ -90,11 +90,12 @@ def make_gp_dat(data, start, end, method, graf_type=0):
                 MAX_STEP     == i['step']   ):
 
                 basis = i
-                print(basis)
+                #  print(basis)
                 break
 
         for method_name in METHODS:
-            with open(Path(OUT_DIR / f'gt0_{method_name}.dat'), 'w') as gp_dat:
+            with open(Path(OUT_DIR)/f'gt0_{method_name}.dat', 'w') as gp_dat:
+                gp_dat.write(f"## STEP\tRELATIVE ERROR\tSURVIVAL PROBABILITY\n")
                 for i in data:
                     if (str(start)   == i['start'] and
                         str(end)     == i['end']   and
@@ -106,10 +107,25 @@ def make_gp_dat(data, start, end, method, graf_type=0):
                         P = i['P']
                         gp_dat.write(f'{step} {err} {P}\n')
 
-    # x = time; y = steps
+        #  with open(Path(OUT_DIR)/"gt0.dat", "w") as gp_dat:
+        #      gp_dat.write(f"## STEP\tREL_ERR(M2)\tREL_ERR(M4)\t\
+        #              REL_ERR(M6)\tREL_ERR(CF4)\tREL_ERR(CF4:3)\t\
+        #              SUR_PROB(M2)\tSUR_PROB(M4)\tSUR_PROB(M6)\t\
+        #              SUR_PROB(CF4)\tSUR_PROB(CF4:3)\n")
+        #      for i in data:
+        #          step = i['step']
+        #          m2   = i['M2']
+        #          m4   = i['M4']
+        #          m6   = i['M6']
+        #          cf4  = i['CF4']
+        #          cf43 = i['CF4:3']
+        #          gp_dat.write(f"{step}\t{m2}\t{m4}\t{m6}\t{cf4}\t{cf43}\n")
+
+    # x = step; y = time
     if graf_type == 1:
         for method_name in METHODS:
-            with open(Path(OUT_DIR / f'gt1_{method_name}.dat'), 'w') as gp_dat:
+            with open(Path(OUT_DIR)/f'gt1_{method_name}.dat', 'w') as gp_dat:
+                gp_dat.write(f"## STEP\tEXECUTION TIME\n")
                 for i in data:
                     if (str(start)  == i['start'] and
                         str(end)    == i['end']   and
@@ -117,10 +133,23 @@ def make_gp_dat(data, start, end, method, graf_type=0):
                         
                         step = i['step']
                         time = i['time']
-                        gp_dat.write(f'{time} {step} \n')
+                        gp_dat.write(f'{step} {time}\n')
+
+        with open(Path(OUT_DIR)/"gt1.dat", "w") as gp_dat:
+            gp_dat.write(f"## STEP\tEXEC TIME(M2)\tEXEC TIME(M4)\t\
+                    EXEC TIME(M6)\tEXEC TIME(CF4)\tEXEC TIME(CF4:3)\n")
+            for i in data:
+                step = i['step']
+                time = i['time']
+                m2   = i['M2']
+                m4   = i['M4']
+                m6   = i['M6']
+                cf4  = i['CF4']
+                cf43 = i['CF4:3']
+                gp_dat.write(f"{step}\t{m2}\t{m4}\t{m6}\t{cf4}\t{cf43}\n")
 
     
-    # x = time; y = steps
+    # x = step; y = time
     if graf_type == 2:
         max_time = float(data[0]['time'])
         for i in data:
@@ -133,7 +162,8 @@ def make_gp_dat(data, start, end, method, graf_type=0):
 
 
         for method_name in METHODS:
-            with open(Path(OUT_DIR / f'gt2_{method_name}.dat'), 'w') as gp_dat:
+            with open(Path(OUT_DIR)/f'gt2_{method_name}.dat', 'w') as gp_dat:
+                gp_dat.write(f"## STEP\tRELATIVE EXECUTION TIME (to M6 1e-10)\n")
                 for i in data:
                     if (str(start)  == i['start'] and
                         str(end)    == i['end']   and
@@ -141,7 +171,7 @@ def make_gp_dat(data, start, end, method, graf_type=0):
 
                         step = i['step']
                         time = float(i['time']) / max_time
-                        gp_dat.write(f'{time} {step} \n')
+                        gp_dat.write(f'{step} {time}\n')
 
 
 if __name__ == '__main__':
@@ -187,4 +217,6 @@ if __name__ == '__main__':
     h_m = "M6"
     start = 0.1
     end = 0.2
+    make_gp_dat(data, start, end, h_m, 0)
     make_gp_dat(data, start, end, h_m, 1)
+    make_gp_dat(data, start, end, h_m, 2)
