@@ -1,0 +1,31 @@
+From df7559910788adfb9685f0325acce1682663e325 Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Thu, 4 Mar 2021 08:54:43 +0800
+Subject: [PATCH 33/34] meson.build: make 'methods' target "self-complete"
+
+  - now it runs 'gen-work' script ('gen-work' target) to generate json
+    file with work load.
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ meson.build | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/meson.build b/meson.build
+index 691f7d2..20d72a5 100644
+--- a/meson.build
++++ b/meson.build
+@@ -10,7 +10,7 @@ env = environment()
+ env.set('BASE_DIR', '.')
+ env.set('CORES', '2')
+ env.set('RUNS', '5')
+-run_target('gen-work', command: gen_e)
++gen_json = custom_target('gen-work', output: 'work.json', command: gen_e)
+ run_target('stats', command: stat_e)
+-# run_target('methods', command: meth_e, env: env)
+-run_target('methods', command: meth_e, depends: ['gen-work'], env: env)
++# Run like: PATH=.:$PATH meson compile methods
++run_target('methods', command: meth_e, depends: gen_json, env: env)
+-- 
+2.30.1
+

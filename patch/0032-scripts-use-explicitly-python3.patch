@@ -1,0 +1,45 @@
+From 8230981eb9b765af157bdb3cc80b6f4a1371f0d4 Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Wed, 3 Mar 2021 19:15:04 +0800
+Subject: [PATCH 32/34] scripts: use explicitly python3
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ scripts/gen-work.py | 2 +-
+ scripts/methods.py  | 2 +-
+ scripts/stat.py     | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/scripts/gen-work.py b/scripts/gen-work.py
+index 29cdc32..709824a 100755
+--- a/scripts/gen-work.py
++++ b/scripts/gen-work.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ 
+ """
+ Generate json files to get data for statistics on used methods.
+diff --git a/scripts/methods.py b/scripts/methods.py
+index ed397cb..9b66827 100755
+--- a/scripts/methods.py
++++ b/scripts/methods.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ 
+ import json
+ import os
+diff --git a/scripts/stat.py b/scripts/stat.py
+index 9b60395..35af5f3 100755
+--- a/scripts/stat.py
++++ b/scripts/stat.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ 
+ import json
+ import os
+-- 
+2.30.1
+

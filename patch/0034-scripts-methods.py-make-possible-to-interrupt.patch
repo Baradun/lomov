@@ -1,0 +1,73 @@
+From f89d204a8bcf998939334f84aafd705dffd1577b Mon Sep 17 00:00:00 2001
+From: Vladimir Lomov <vladimir@theor7.ktp>
+Date: Thu, 4 Mar 2021 15:56:53 +0800
+Subject: [PATCH 34/34] scripts/methods.py: make possible to interrupt
+
+  - run processes by hinting Ctrl-C (adapted code from Alexander).
+
+Signed-off-by: Vladimir Lomov <vladimir@theor7.ktp>
+---
+ scripts/methods.py | 32 ++++++++++++++++++++------------
+ 1 file changed, 20 insertions(+), 12 deletions(-)
+
+diff --git a/scripts/methods.py b/scripts/methods.py
+index 9b66827..5728801 100755
+--- a/scripts/methods.py
++++ b/scripts/methods.py
+@@ -6,6 +6,7 @@ import sys
+ from multiprocessing import Pool
+ from pathlib import Path
+ import subprocess
++from subprocess import Popen
+ import time
+ 
+ BASE_DIR = os.getenv('BASE_DIR', 'main')
+@@ -27,16 +28,20 @@ def run_subprocess(params):
+     command = [ str(params["program"]), params["start"], params["end"],
+             params["step"], params["method"] ]
+ 
+-    try:
+-        result = subprocess.run(command, capture_output=True, check=True,
+-                text=True)
++    with Popen(command, stdout=subprocess.PIPE, text=True) as proc:
+         with open(params["dat_file"], "w") as f:
+-            f.write(result.stdout)
+-        if result.returncode == 0:
+-            return 0
+-        return RuntimeError
+-    except subprocess.SubprocessError as exeption:
+-        return exeption
++            f.write(proc.stdout.read())
++
++    #  try:
++    #      result = subprocess.run(command, capture_output=True, check=True,
++    #              text=True)
++    #      with open(params["dat_file"], "w") as f:
++    #          f.write(result.stdout)
++    #      if result.returncode == 0:
++    #          return 0
++    #      return RuntimeError
++    #  except subprocess.SubprocessError as exeption:
++    #      return exeption
+ 
+ 
+ def get_params(params_file, data_dir):
+@@ -79,9 +84,12 @@ def run(data_dir, json_file):
+ 
+     """
+     list_params = get_params(json_file, data_dir)
+-    process_pool = Pool(CORES)
+-    result = process_pool.map(run_subprocess, list_params)
+-    print(result)
++    try:
++        process_pool = Pool(CORES)
++        result = process_pool.map(run_subprocess, list_params)
++        print(result)
++    except KeyboardInterrupt as e:
++        process_pool.terminate()
+ 
+     process_pool.close()
+     process_pool.join()
+-- 
+2.30.1
+
