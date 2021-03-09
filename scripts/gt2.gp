@@ -4,11 +4,11 @@ set term pdfcairo enhanced font "Consolas,12"
 set logscale x
 set logscale y
 
-gt_s = "gt0"
+gt_s = "gt2"
 inData(a,b) = sprintf("%s_(%s,%s).dat", gt_s, a, b)
 outF(a) = sprintf("%s_%s.pdf", gt_s, a)
 
-set title "Relative error"
+set title "Relative execution time"
 
 rg = inData('0.1', '0.15')
 set output outF("rg1")
