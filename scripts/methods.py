@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import curses
-from copy import deepcopy
+from copy import Error, deepcopy
 import json
 import os
 import subprocess
@@ -166,6 +166,8 @@ def run(data_dir, json_file):
         print(result)
     except KeyboardInterrupt as e:
         process_pool.terminate()
+    except Error as e:
+        print(e)
 
     process_pool.close()
     process_pool.join()

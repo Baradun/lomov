@@ -13,9 +13,9 @@ import pandas as pd
 
 DATA_DIR = os.getenv("METHODS_DATA_DIR", "data")
 OUT_DIR = os.getenv("METHODS_GRAPH_DIR", "graphs")
-METHODS = [ "M2", "M4", "M6", "CF4", "CF4:3" ]
-DF_COLS = { 'RANGE': 1, 'START': 2, 'END': 3, 'METHOD': 4, 'STEP': 5,
-            'PROB': 6, 'TIME': 7 }
+METHODS = ["M2", "M4", "M6", "CF4", "CF4:3"]
+DF_COLS = {'RANGE': 1, 'START': 2, 'END': 3, 'METHOD': 4, 'STEP': 5,
+           'PROB': 6, 'TIME': 7}
 REF_METHOD = "M6"
 REF_STEP = 1e-10
 
@@ -126,23 +126,23 @@ def gen_gp_dat(data, graf_type=0):
     # x = steps; y = err
     if graf_type == 0:
         for rng in rngs:
-            c_rng = data[ data['range'] == rng ]
-            sel = c_rng[ c_rng['method'] == REF_METHOD ]
-            sel = sel[ sel['step'] == REF_STEP ]
+            c_rng = data[data['range'] == rng]
+            sel = c_rng[c_rng['method'] == REF_METHOD]
+            sel = sel[sel['step'] == REF_STEP]
             bas_prob = sel['prob'].to_numpy()[0]
 
             rng_s = c_rng.sort_values('step')
             steps = rng_s['step'].unique()
-            m2_p = rng_s[ rng_s['method'] == 'M2' ]['prob'].to_numpy()
-            m4_p = rng_s[ rng_s['method'] == 'M4' ]['prob'].to_numpy()
-            m6_p = rng_s[ rng_s['method'] == 'M6' ]['prob'].to_numpy()
-            cf4_p = rng_s[ rng_s['method'] == 'CF4' ]['prob'].to_numpy()
-            cf43_p = rng_s[ rng_s['method'] == 'CF4:3' ]['prob'].to_numpy()
+            m2_p = rng_s[rng_s['method'] == 'M2']['prob'].to_numpy()
+            m4_p = rng_s[rng_s['method'] == 'M4']['prob'].to_numpy()
+            m6_p = rng_s[rng_s['method'] == 'M6']['prob'].to_numpy()
+            cf4_p = rng_s[rng_s['method'] == 'CF4']['prob'].to_numpy()
+            cf43_p = rng_s[rng_s['method'] == 'CF4:3']['prob'].to_numpy()
 
             with open(Path(OUT_DIR) / f'gt0_{rng}.dat', 'w') as gp_dat:
                 gp_dat.write("# STEP\tRELATIVE ERROR\tSURVIVAL PROBABILITY\n")
                 gp_dat.write("#       M2\tM4\tM6\tCF4\tCF4:3\n")
-                for k,step in enumerate(steps):
+                for k, step in enumerate(steps):
                     reM2 = abs(m2_p[k] - bas_prob) / bas_prob
                     reM4 = abs(m4_p[k] - bas_prob) / bas_prob
                     reM6 = abs(m6_p[k] - bas_prob) / bas_prob
@@ -154,43 +154,43 @@ def gen_gp_dat(data, graf_type=0):
     # x = step; y = time
     if graf_type == 1:
         for rng in rngs:
-            rng_s = data[ data['range'] == rng ].sort_values('step')
+            rng_s = data[data['range'] == rng].sort_values('step')
             steps = rng_s['step'].unique()
-            m2_t = rng_s[ rng_s['method'] == 'M2' ]['time'].to_numpy()
-            m4_t = rng_s[ rng_s['method'] == 'M4' ]['time'].to_numpy()
-            m6_t = rng_s[ rng_s['method'] == 'M6' ]['time'].to_numpy()
-            cf4_t = rng_s[ rng_s['method'] == 'CF4' ]['time'].to_numpy()
-            cf43_t = rng_s[ rng_s['method'] == 'CF4:3' ]['time'].to_numpy()
+            m2_t = rng_s[rng_s['method'] == 'M2']['time'].to_numpy()
+            m4_t = rng_s[rng_s['method'] == 'M4']['time'].to_numpy()
+            m6_t = rng_s[rng_s['method'] == 'M6']['time'].to_numpy()
+            cf4_t = rng_s[rng_s['method'] == 'CF4']['time'].to_numpy()
+            cf43_t = rng_s[rng_s['method'] == 'CF4:3']['time'].to_numpy()
 
             with open(Path(OUT_DIR) / f'gt1_{rng}.dat', 'w') as gp_dat:
                 gp_dat.write("# STEP\tEXECUTION TIME\n")
                 gp_dat.write("#       M2\tM4\tM6\tCF4\tCF4:3\n")
-                for k,step in enumerate(steps):
-                    gp_dat.write(f"{step}\t{m2_t[k]}\t{m4_t[k]}\t{m6_t[k]}\
-\t{cf4_t[k]}\t{cf43_t[k]}\n")
+                for k, step in enumerate(steps):
+                    gp_dat.write(f"{step}\t{m2_t[k]}\t{m4_t[k]}\t{m6_t[k]}"+
+                                f"\t{cf4_t[k]}\t{cf43_t[k]}\n")
 
     # x = step; y = time
     if graf_type == 2:
         for rng in rngs:
-            rng_s = data[ data['range'] == rng ].sort_values('step')
+            rng_s = data[data['range'] == rng].sort_values('step')
             max_time = rng_s['time'].max()
 
             steps = rng_s['step'].unique()
-            m2_t = rng_s[ rng_s['method'] == 'M2' ]['time'].to_numpy() \
-                   / max_time
-            m4_t = rng_s[ rng_s['method'] == 'M4' ]['time'].to_numpy() \
-                   / max_time
-            m6_t = rng_s[ rng_s['method'] == 'M6' ]['time'].to_numpy() \
-                   / max_time
-            cf4_t = rng_s[ rng_s['method'] == 'CF4' ]['time'].to_numpy() \
-                    / max_time
-            cf43_t = rng_s[ rng_s['method'] == 'CF4:3' ]['time'].to_numpy() \
-                     / max_time
+            m2_t = rng_s[rng_s['method'] == 'M2']['time'].to_numpy() \
+                / max_time
+            m4_t = rng_s[rng_s['method'] == 'M4']['time'].to_numpy() \
+                / max_time
+            m6_t = rng_s[rng_s['method'] == 'M6']['time'].to_numpy() \
+                / max_time
+            cf4_t = rng_s[rng_s['method'] == 'CF4']['time'].to_numpy() \
+                / max_time
+            cf43_t = rng_s[rng_s['method'] == 'CF4:3']['time'].to_numpy() \
+                / max_time
 
             with open(Path(OUT_DIR) / f'gt2_{rng}.dat', 'w') as gp_dat:
                 gp_dat.write("## STEP\tRELATIVE EXECUTION TIME\n")
                 gp_dat.write("#       M2\tM4\tM6\tCF4\tCF4:3\n")
-                for k,step in enumerate(steps):
+                for k, step in enumerate(steps):
                     gp_dat.write(f"{step}\t{m2_t[k]}\t{m4_t[k]}\t{m6_t[k]}\
 \t{cf4_t[k]}\t{cf43_t[k]}\n")
 
