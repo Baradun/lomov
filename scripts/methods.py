@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 import curses
-from copy import Error, deepcopy
 import json
 import os
 import subprocess
 import sys
 import time
-from multiprocessing import Array, Pool, Lock
+from copy import Error, deepcopy
+from multiprocessing import Array, Lock, Pool
 from pathlib import Path
 from subprocess import Popen
 
@@ -29,6 +29,8 @@ class Win:
     def __init__(self, list_params):
         self.list_params = deepcopy(list_params)
         self.screen = curses.initscr()
+        curses.curs_set(False)
+        curses.start_color()
 
         self.num_rows, self.num_cols = self.screen.getmaxyx()
         self.win = curses.newwin(self.num_rows, self.num_cols, 0, 0)
@@ -51,7 +53,8 @@ class Win:
         for method in METHODS:
             cnt = 0
             for i in self.list_params:
-                if method == i.get('method') and end_process[win.list_params.index(i)] == 0:
+                if (method == i.get('method') and
+                        end_process[win.list_params.index(i)] == 0):
                     cnt += 1
             values.append({'method': method, 'count': cnt})
         return values
@@ -59,7 +62,7 @@ class Win:
     @staticmethod
     def progress(number, totaly, colums_number=60):
         range = int((colums_number / float(totaly)) * number)
-        return range*'#' + ' '*int(colums_number - range)
+        return range*'#' + '.'*int(colums_number - range)
 
     def update(self):
         new_num_rows, new_num_cols = self.screen.getmaxyx()
@@ -67,24 +70,34 @@ class Win:
             self.num_rows = new_num_rows
             self.num_cols = new_num_cols
             self.win = curses.newwin(self.num_rows, self.num_cols, 0, 0)
-
+        
         values = self.count_multi()
-
-        i = 0
+        
+        curses.init_pair(1, curses.COLOR_RED, curses.COLOR_WHITE)
+        curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_GREEN)
+        curses.init_pair(4, curses.COLOR_RED, curses.COLOR_YELLOW)
+        curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLUE)
+        
+        
+        line_number = 0
         for deflot in self.values:
             for modified in values:
                 if deflot.get('method') == modified.get('method'):
-                    self.win.addstr(i, 0, deflot.get('method'))
+                    self.win.addstr(line_number, 0, deflot.get('method'), curses.color_pair(line_number+1))
                     total = deflot.get('count')
                     number = modified.get('count')
 
                     persent_string = self.progress(number, total)
 
                     self.win.addstr(
-                        i, 8, f'[{persent_string}] ({number:>5}/{total:>5})')
-                    self.win.refresh()
+                        line_number, 8, f'[{persent_string}] ({number:>5}/{total:>5})', curses.color_pair(line_number+1))
 
-                    i += 1
+
+                    line_number += 1
+        curses.napms(10)
+        self.win.refresh()
+        
 
     def __del__(self):
         curses.endwin()
@@ -97,13 +110,11 @@ def run_subprocess(params):
     command = [str(params['program']), params['start'], params['end'],
                params['step'], params['method']]
 
-    
     # Terminal info
+    
     end_process[win.list_params.index(params)] = 0
-    lock.acquire()
     win.update()
-    lock.release()
-
+    
 
     with Popen(command, stdout=subprocess.PIPE, text=True) as proc:
         with open(params['dat_file'], 'w') as f:
@@ -151,14 +162,13 @@ def run(data_dir, json_file):
     """
     list_params = get_params(json_file, data_dir)
 
-    # Create window in terminal 
+    # Create window in terminal
     global win
     global end_process
     end_process = Array('i', len(list_params))
     for i in range(len(list_params)):
         end_process[i] = 1
     win = Win(list_params)
-
 
     try:
         process_pool = Pool(CORES)
@@ -171,6 +181,8 @@ def run(data_dir, json_file):
 
     process_pool.close()
     process_pool.join()
+
+    del win
 
 
 if __name__ == '__main__':
