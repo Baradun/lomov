@@ -18,6 +18,7 @@ DF_COLS = {'RANGE': 1, 'START': 2, 'END': 3, 'METHOD': 4, 'STEP': 5,
            'PROB': 6, 'TIME': 7}
 REF_METHOD = "M6"
 REF_STEP = 1e-10
+EDGE_VALUE = 1e-8
 
 
 def info(content):
@@ -148,6 +149,18 @@ def gen_gp_dat(data, graf_type=0):
                     reM6 = abs(m6_p[k] - bas_prob) / bas_prob
                     reCF4 = abs(cf4_p[k] - bas_prob) / bas_prob
                     reCF43 = abs(cf43_p[k] - bas_prob) / bas_prob
+                    # ### If a relative error equals to zero we will use some
+                    # ### EDGE value
+                    if reM2 == 0.0:
+                        reM2 = EDGE_VALUE
+                    if reM4 == 0.0:
+                        reM4 = EDGE_VALUE
+                    if reM6 == 0.0:
+                        reM6 = EDGE_VALUE
+                    if reCF4 == 0.0:
+                        reCF4 = EDGE_VALUE
+                    if reCF43 == 0.0:
+                        reCF43 = EDGE_VALUE
                     gp_dat.write(f"{step}\t{reM2}\t{m2_p[k]}\t{reM4}\t\
 {m4_p[k]}\t{reM6}\t{m6_p[k]}\t{reCF4}\t{cf4_p[k]}\t{reCF43}\t{cf43_p[k]}\n")
 
