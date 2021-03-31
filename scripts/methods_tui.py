@@ -6,11 +6,12 @@ import os
 import subprocess
 import sys
 import time
-from copy import deepcopy
-from multiprocessing import Array, Lock, Pool
+from copy import deepcopy, copy
+from multiprocessing import Array, Lock, Pool, Process, process
 from pathlib import Path
 from subprocess import Popen
-
+from typing import Counter
+from random import sample
 from pydantic import BaseModel
 
 BASE_DIR = os.getenv('BASE_DIR', 'main')
@@ -24,14 +25,13 @@ SCRIPT_DIR = os.getenv('MESON_SOURCE_ROOT', '.')
 WDIR = os.getenv('MESON_BUILD_ROOT', '.')
 METHODS = ['M2', 'M4', 'M6', 'CF4', 'CF4:3']
 
-lock = Lock()
 
 class Win:
     def __init__(self, list_params):
-        self.list_params = deepcopy(list_params)
+        self.list_params = copy(list_params)
         self.screen = curses.initscr()
         curses.curs_set(False)
-        curses.start_color()
+        #curses.start_color()
 
         self.num_rows, self.num_cols = self.screen.getmaxyx()
         self.win = curses.newwin(self.num_rows, self.num_cols, 0, 0)
@@ -46,79 +46,56 @@ class Win:
             for i in self.list_params:
                 if method == i.get('method'):
                     cnt += 1
-            values.append({'method': method, 'count': cnt})
+            if cnt > 0:
+                values.append({'method': method, 'total': cnt, "finished": 0})
         return values
-
-    def count_multi(self):
-        values = []
-        for method in METHODS:
-            cnt = 0
-            for i in self.list_params:
-                if (method == i.get('method') and
-                        end_process[win.list_params.index(i)] == 0):
-                    cnt += 1
-            values.append({'method': method, 'count': cnt})
-        return values
-
+    
+    
     @staticmethod
-    def progress(number, totaly, colums_number=60):
-        range = int((colums_number / float(totaly)) * number)
+    def progress(total, finished, colums_number=60):
+        
+        range = int((colums_number / float(total)) * finished)
         return range*'#' + '.'*int(colums_number - range)
 
-    def update(self):
+    def update(self, name):
         new_num_rows, new_num_cols = self.screen.getmaxyx()
         if new_num_cols != self.num_cols or new_num_rows != self.num_rows:
             self.num_rows = new_num_rows
             self.num_cols = new_num_cols
             self.win = curses.newwin(self.num_rows, self.num_cols, 0, 0)
 
-        values = self.count_multi()
-
-        curses.init_pair(1, curses.COLOR_RED, curses.COLOR_WHITE)
-        curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
-        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_GREEN)
-        curses.init_pair(4, curses.COLOR_RED, curses.COLOR_YELLOW)
-        curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLUE)
+        for i in self.values:
+            if i.get("method") == name:
+                i['finished'] += 1
 
         line_number = 0
         for deflot in self.values:
-            for modified in values:
-                if deflot.get('method') == modified.get('method'):
-                    self.win.addstr(line_number, 0, deflot.get(
-                        'method'), curses.color_pair(line_number+1))
-                    total = deflot.get('count')
-                    number = modified.get('count')
+            self.win.addstr(line_number, 0, deflot.get('method'))
+            total = deflot.get('total')
+            finished = deflot.get('finished')
 
-                    persent_string = self.progress(number, total)
+            persent_string = self.progress(total, finished)
 
-                    self.win.addstr(
-                        line_number, 8, f'[{persent_string}] ({number:>5}/{total:>5})', curses.color_pair(line_number+1))
+            self.win.addstr(
+                line_number, 8, f'[{persent_string}] ({finished:>5}/{total:>5})')
 
-                    line_number += 1
-        curses.napms(10)
+            line_number += 1
+        # curses.napms(10)
         self.win.refresh()
 
     def __del__(self):
         curses.endwin()
 
 
-def run_subprocess(params):
+def run_subprocess(program, start, end, step, method, dat_file):
     """Run a program with given parameters.
 
     """
-    command = [str(params['program']), params['start'], params['end'],
-               params['step'], params['method']]
-
-    # Terminal info
-
-    end_process[win.list_params.index(params)] = 0
-    win.update()
-
+    command = [str(program), str(start), str(end), str(step), method]
+    # print('sub\t', command)
     with Popen(command, stdout=subprocess.PIPE, text=True) as proc:
-        with open(params['dat_file'], 'w') as f:
+        with open(dat_file, 'w') as f:
             f.write(proc.stdout.read())
-    
-
 
 
 def get_params(params_file, data_dir):
@@ -153,7 +130,7 @@ def get_params(params_file, data_dir):
                 'dat_file': dat_file
             })
 
-    return list_params
+    return sample(list_params, k=len(list_params))
 
 
 def run(data_dir, json_file):
@@ -161,27 +138,45 @@ def run(data_dir, json_file):
 
     """
     list_params = get_params(json_file, data_dir)
+    run_process = []
+    list_process = []
+    for i, j in enumerate(list_params):
+        program = j.get('program')
+        method_name = j.get('method')
+        start = j.get('start')
+        end = j.get('end')
+        step = j.get('step')
+        dat_file = j.get('dat_file')
+        list_process.append(
+            Process(target=run_subprocess, name=j.get('method') , args=(program, start, end, step, method_name, dat_file)))
 
     # Create window in terminal
     global win
-    global end_process
-    end_process = Array('i', len(list_params))
-    for i in range(len(list_params)):
-        end_process[i] = 1
     win = Win(list_params)
 
     try:
-        process_pool = Pool(CORES)
-        result = process_pool.map(run_subprocess, list_params)
-        result = process_pool.apply_async
-        print(result)
+        while len(list_process) != 0:
+            if len(run_process) < CORES and len(list_process) != 0:
+                run_process.append(list_process.pop(0))
+                run_process[len(run_process)-1].start()
+                next
+
+            for i in run_process:
+                if not i.is_alive():
+                    win.update(i.name)
+                    run_process.remove(i)
+
+        while len(run_process) != 0:
+            for i in run_process:
+                if not i.is_alive():
+                    win.update(i.name)
+                    run_process.remove(i)
+
     except KeyboardInterrupt as e:
-        process_pool.terminate()
+        for i in run_process:
+            i.terminate()
     except Exception as e:
         print(e)
-
-    process_pool.close()
-    process_pool.join()
 
     del win
 
@@ -220,9 +215,5 @@ if __name__ == '__main__':
     print(time.time() - start_time)
 
 
-
 # TODO:
 # * Change "stop" to "end" in the file "work-do.json"
-
-# * IDEAS
-# * * Rewrite using the "pydantics" library from line 135 to 140

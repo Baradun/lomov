@@ -82,7 +82,6 @@ def run(data_dir, json_file):
     try:
         process_pool = Pool(CORES)
         result = process_pool.map(run_subprocess, list_params)
-        result = process_pool.apply_async
         print(result)
     except KeyboardInterrupt as e:
         process_pool.terminate()
