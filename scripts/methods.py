@@ -6,15 +6,12 @@ import os
 import subprocess
 import sys
 import time
-
 from multiprocessing import Pool
 from pathlib import Path
 from subprocess import Popen
 
-
-
 BASE_DIR = os.getenv('BASE_DIR', 'main')
-RUN_FILE = os.getenv('RUN_FILE', 'main')
+RUN_FILE = os.getenv('RUN_FILE', 'piecewise')
 RUNS = int(os.getenv('RUNS', '10'))
 CORES = int(os.getenv('CORES', '12'))
 DATA_DIR = os.getenv('DATA_DIR', 'data')
@@ -24,18 +21,23 @@ SCRIPT_DIR = os.getenv('MESON_SOURCE_ROOT', '.')
 WDIR = os.getenv('MESON_BUILD_ROOT', '.')
 METHODS = ['M2', 'M4', 'M6', 'CF4', 'CF4:3']
 
+
 def run_subprocess(params):
     """Run a program with given parameters.
 
     """
-    command = [str(params['program']), params['start'], params['end'],
-               params['step'], params['method']]
+    command = [str(params['program']),
+               params['start'],
+               params['end'],
+               params['step'],
+               params['method'],
+               params['e'],
+               params['v0'],
+               params['n']]
 
     with Popen(command, stdout=subprocess.PIPE, text=True) as proc:
         with open(params['dat_file'], 'w') as f:
             f.write(proc.stdout.read())
-    
-
 
 
 def get_params(params_file, data_dir):
@@ -53,20 +55,26 @@ def get_params(params_file, data_dir):
     for method_data in data_json.get('work'):
         method_name = method_data.get('method')
         start = str(method_data.get('start'))
-        stop = str(method_data.get('stop'))
+        end = str(method_data.get('end'))
         step = str(method_data.get('step'))
+        e = str(method_data.get('e'))
+        v0 = str(method_data.get('v0'))
+        n = str(method_data.get('n'))
 
         exe = Path(BASE_DIR) / Path(RUN_FILE)
 
         for j in range(RUNS):
-            dat_file_p = f'{method_name}_{start},{stop}_{step}_r{j}.dat'
+            dat_file_p = f'{method_name}_{start},{end}_{step}_r{j}.dat'
             dat_file = Path(data_dir / dat_file_p)
             list_params.append({
                 'program': exe,
                 'start': start,
-                'end': stop,
+                'end': end,
                 'step': step,
                 'method': method_name,
+                'e': e,
+                'v0': v0,
+                'n': n,
                 'dat_file': dat_file
             })
 
@@ -90,7 +98,6 @@ def run(data_dir, json_file):
 
     process_pool.close()
     process_pool.join()
-
 
 
 if __name__ == '__main__':
@@ -127,7 +134,5 @@ if __name__ == '__main__':
     print(time.time() - start_time)
 
 
-
 # TODO:
 # * Change "stop" to "end" in the file "work-do.json"
-

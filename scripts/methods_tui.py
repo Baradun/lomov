@@ -6,13 +6,11 @@ import os
 import subprocess
 import sys
 import time
-from copy import deepcopy, copy
-from multiprocessing import Array, Lock, Pool, Process, process
+from copy import copy
+from multiprocessing import Process
 from pathlib import Path
-from subprocess import Popen
-from typing import Counter
 from random import sample
-from pydantic import BaseModel
+from subprocess import Popen
 
 BASE_DIR = os.getenv('BASE_DIR', 'main')
 RUN_FILE = os.getenv('RUN_FILE', 'main')
@@ -31,7 +29,7 @@ class Win:
         self.list_params = copy(list_params)
         self.screen = curses.initscr()
         curses.curs_set(False)
-        #curses.start_color()
+        # curses.start_color()
 
         self.num_rows, self.num_cols = self.screen.getmaxyx()
         self.win = curses.newwin(self.num_rows, self.num_cols, 0, 0)
@@ -49,11 +47,10 @@ class Win:
             if cnt > 0:
                 values.append({'method': method, 'total': cnt, "finished": 0})
         return values
-    
-    
+
     @staticmethod
     def progress(total, finished, colums_number=60):
-        
+
         range = int((colums_number / float(total)) * finished)
         return range*'#' + '.'*int(colums_number - range)
 
@@ -148,7 +145,7 @@ def run(data_dir, json_file):
         step = j.get('step')
         dat_file = j.get('dat_file')
         list_process.append(
-            Process(target=run_subprocess, name=j.get('method') , args=(program, start, end, step, method_name, dat_file)))
+            Process(target=run_subprocess, name=j.get('method'), args=(program, start, end, step, method_name, dat_file)))
 
     # Create window in terminal
     global win
