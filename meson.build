@@ -3,7 +3,7 @@ src = 'main/main.cpp'
 dep = [dependency('eigen3')]
 e = executable('main', sources: src, dependencies: dep)
 
-meth_e = find_program('scripts' / 'methods.py')
+meth_e = find_program('scripts' / 'methods_tui.py')
 gen_e = find_program('scripts' / 'gen-work.py')
 stat_e = find_program('scripts' / 'stat.py')
 env = environment()
