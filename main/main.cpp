@@ -37,10 +37,8 @@ public:
         double start,
         double end,
         double steps,
-        double e,
-        double v0,
-        double n
-    ): H0(H0), W(W), v(v), start(start), end(end), prof(prof), e(e), v0(v0), n(n)
+        double e
+    ): H0(H0), W(W), v(v), start(start), end(end), prof(prof), e(e)
     {
         if (steps >= 1) this->step = (end - start) / (steps);
         else this->step = steps;
@@ -220,8 +218,7 @@ public:
     {
         std::cout << "p = " << p << " q = " << q << std::endl;
         std::cout << "lb0 = " << lbd0 << " lbd1 = " << lbd1 << " lbd2 = " << lbd2 << std::endl;
-        std::cout << "a = " << a << " b = " << b << " c = " << c << std::endl;
-        std::cout << "e = " << e << " v0 = " << v0 << " n = " << n << std::endl;
+        std::cout << "e = " << e << std::endl;
         std::cout << v << std::endl;
         std::cout << "1-norm " << 1.0 - v.norm() << std::endl;
         std::cout << "norm0 = " << std::abs(v(0,0)) << std::endl;
@@ -249,9 +246,6 @@ private:
     complex<double> r1;
     function<double(double)> prof;
     double e;
-    double v0;
-    double n;
-
 
     complex<double> calc_lambda(double k, complex<double> p, complex<double> q)
     {
@@ -302,7 +296,7 @@ private:
 
 int main(int argc, char *argv[])
 {
-    if (argc != 8)
+    if (argc != 6)
     {
         return 1;
     }
@@ -311,8 +305,6 @@ int main(int argc, char *argv[])
     double steps = std::stod(argv[3]);
     string mthd = argv[4];
     double e = std::stod(argv[5]);
-    double v0 = std::stod(argv[6]);
-    double n = std::stod(argv[7]);
 
 
     Matrix<std::complex<double>, 3, 1> v1;
@@ -340,12 +332,12 @@ int main(int argc, char *argv[])
         c12 * c13 * s13, s12 * c13 * s13, s13 * s13;
 
     // ----- other -----
+    double v0 = 6.5956e4;
+    double n = 10.54;
     function<double(double)> prof = [=](double t) { return f_prof(t, v0, n) ; };
 
-    
 
-    H0 = H0 + W;
-    Methods test = Methods(H0, W, v1, prof, start, end, steps, e, v0, n);
+    Methods test = Methods(H0, W, v1, prof, start, end, steps, e);
     std::cout << "H0 = " << H0 << std::endl;
     std::cout << "W = " << W << std::endl;
     std::cout << "v = " << v1 << std::endl;

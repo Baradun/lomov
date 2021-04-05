@@ -3,14 +3,12 @@
 import curses
 import json
 import os
-import subprocess
 import sys
 import time
-from copy import copy
 from multiprocessing import Process
 from pathlib import Path
 from random import sample
-from subprocess import Popen
+from subprocess import PIPE, Popen
 
 BASE_DIR = os.getenv('BASE_DIR', 'main')
 RUN_FILE = os.getenv('RUN_FILE', 'main')
@@ -26,7 +24,7 @@ METHODS = ['M2', 'M4', 'M6', 'CF4', 'CF4:3']
 
 class Win:
     def __init__(self, list_params):
-        self.list_params = copy(list_params)
+
         self.screen = curses.initscr()
         curses.curs_set(False)
         # curses.start_color()
@@ -34,14 +32,14 @@ class Win:
         self.num_rows, self.num_cols = self.screen.getmaxyx()
         self.win = curses.newwin(self.num_rows, self.num_cols, 0, 0)
         self.win.refresh()
+        self.values = self.count(list_params)
 
-        self.values = self.count()
-
-    def count(self):
+    @staticmethod
+    def count(list_prams):
         values = []
         for method in METHODS:
             cnt = 0
-            for i in self.list_params:
+            for i in list_prams:
                 if method == i.get('method'):
                     cnt += 1
             if cnt > 0:
@@ -51,8 +49,8 @@ class Win:
     @staticmethod
     def progress(total, finished, colums_number=60):
 
-        range = int((colums_number / float(total)) * finished)
-        return range*'#' + '.'*int(colums_number - range)
+        rng = int((colums_number / float(total)) * finished)
+        return rng *'#' + '.'*int(colums_number - rng)
 
     def update(self, name):
         new_num_rows, new_num_cols = self.screen.getmaxyx()
@@ -84,13 +82,12 @@ class Win:
         curses.endwin()
 
 
-def run_subprocess(program, start, end, step, method, dat_file):
+def run_subprocess(program, start, end, step, method, e, dat_file):
     """Run a program with given parameters.
 
     """
-    command = [str(program), str(start), str(end), str(step), method]
-    # print('sub\t', command)
-    with Popen(command, stdout=subprocess.PIPE, text=True) as proc:
+    command = [str(program), str(start), str(end), str(step), method, str(e)]
+    with Popen(command, stdout=PIPE, text=True) as proc:
         with open(dat_file, 'w') as f:
             f.write(proc.stdout.read())
 
@@ -112,7 +109,7 @@ def get_params(params_file, data_dir):
         start = str(method_data.get('start'))
         stop = str(method_data.get('stop'))
         step = str(method_data.get('step'))
-
+        e = str(method_data.get('e'))
         exe = Path(BASE_DIR) / Path(RUN_FILE)
 
         for j in range(RUNS):
@@ -124,6 +121,7 @@ def get_params(params_file, data_dir):
                 'end': stop,
                 'step': step,
                 'method': method_name,
+                'e': e,
                 'dat_file': dat_file
             })
 
@@ -143,9 +141,11 @@ def run(data_dir, json_file):
         start = j.get('start')
         end = j.get('end')
         step = j.get('step')
+        e = j.get('e')
         dat_file = j.get('dat_file')
         list_process.append(
-            Process(target=run_subprocess, name=j.get('method'), args=(program, start, end, step, method_name, dat_file)))
+            Process(target=run_subprocess, name=j.get('method'),
+                    args=(program, start, end, step, method_name, e, dat_file)))
 
     # Create window in terminal
     global win
@@ -210,7 +210,3 @@ if __name__ == '__main__':
 
     print('end prgrm')
     print(time.time() - start_time)
-
-
-# TODO:
-# * Change "stop" to "end" in the file "work-do.json"

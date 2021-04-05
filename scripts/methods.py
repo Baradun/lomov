@@ -11,7 +11,7 @@ from pathlib import Path
 from subprocess import Popen
 
 BASE_DIR = os.getenv('BASE_DIR', 'main')
-RUN_FILE = os.getenv('RUN_FILE', 'piecewise')
+RUN_FILE = os.getenv('RUN_FILE', 'main')
 RUNS = int(os.getenv('RUNS', '10'))
 CORES = int(os.getenv('CORES', '12'))
 DATA_DIR = os.getenv('DATA_DIR', 'data')
@@ -31,9 +31,7 @@ def run_subprocess(params):
                params['end'],
                params['step'],
                params['method'],
-               params['e'],
-               params['v0'],
-               params['n']]
+               params['e']]
 
     with Popen(command, stdout=subprocess.PIPE, text=True) as proc:
         with open(params['dat_file'], 'w') as f:
@@ -58,8 +56,6 @@ def get_params(params_file, data_dir):
         end = str(method_data.get('end'))
         step = str(method_data.get('step'))
         e = str(method_data.get('e'))
-        v0 = str(method_data.get('v0'))
-        n = str(method_data.get('n'))
 
         exe = Path(BASE_DIR) / Path(RUN_FILE)
 
@@ -73,8 +69,6 @@ def get_params(params_file, data_dir):
                 'step': step,
                 'method': method_name,
                 'e': e,
-                'v0': v0,
-                'n': n,
                 'dat_file': dat_file
             })
 
@@ -90,7 +84,6 @@ def run(data_dir, json_file):
     try:
         process_pool = Pool(CORES)
         result = process_pool.map(run_subprocess, list_params)
-        print(result)
     except KeyboardInterrupt as e:
         process_pool.terminate()
     except Exception as e:
@@ -132,7 +125,3 @@ if __name__ == '__main__':
 
     print('end prgrm')
     print(time.time() - start_time)
-
-
-# TODO:
-# * Change "stop" to "end" in the file "work-do.json"

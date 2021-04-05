@@ -14,8 +14,6 @@ methods = ['M2', 'M4', 'M6', 'CF4', 'CF4:3']
 steps = [1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 1e-10]
 rngs = [(0.1, 0.15), (0.1, 0.2), (0.1, 0.3)]
 e = 3.0
-v0 = 6.5956e4
-n = 10.54
 
 
 JSON_DIR = Path('methods')
@@ -41,9 +39,7 @@ for r in rngs:
                 'start': r[0],
                 'stop': r[1],
                 'step': s,
-                'e': e,
-                'v0': v0,
-                'n': n})
+                'e': e,})
 
 shfld = random.sample(work, k=len(work))
 
