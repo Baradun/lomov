@@ -347,17 +347,17 @@ int main(int argc, char *argv[])
     {
         function<double(double)> prof = [=](double t) { return f_prof(t, v0[i], n[i]) ; };
         Methods run = Methods(H0, W, v1, prof, start, start+ delta, steps, e);
-        if (mthd == "M2") v = run.M2();
-        if (mthd == "M4") v = run.M4();
-        if (mthd == "M6") v = run.M6();
-        if (mthd == "CF4") v = run.CF4();
-        if (mthd == "CF4:3") v = run.CF4_3();
+        if (mthd == "M2") v1 = run.M2();
+        if (mthd == "M4") v1 = run.M4();
+        if (mthd == "M6") v1 = run.M6();
+        if (mthd == "CF4") v1 = run.CF4();
+        if (mthd == "CF4:3") v1 = run.CF4_3();
 
         
         std::cout << "H0 = " << H0 << std::endl;
         std::cout << "W = " << W << std::endl;
         std::cout << "v = " << v1 << std::endl;
-        std::cout << "start = " << start << " end = " << end << " step = " << steps << std::endl;
+        std::cout << "start = " << start << " end = " << start + delta << " step = " << steps << std::endl;
         run.print_more_info(v);
         std::cout << "------------------------------------------------------- " << std::endl;
         start += delta;

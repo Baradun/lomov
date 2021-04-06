@@ -37,7 +37,7 @@ for r in rngs:
             work.append({
                 'method': f'{m}',
                 'start': r[0],
-                'stop': r[1],
+                'end': r[1],
                 'step': s,
                 'e': e,})
 

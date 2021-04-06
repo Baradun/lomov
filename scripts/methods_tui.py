@@ -107,18 +107,18 @@ def get_params(params_file, data_dir):
     for method_data in data_json.get('work'):
         method_name = method_data.get('method')
         start = str(method_data.get('start'))
-        stop = str(method_data.get('stop'))
+        end = str(method_data.get('end'))
         step = str(method_data.get('step'))
         e = str(method_data.get('e'))
         exe = Path(BASE_DIR) / Path(RUN_FILE)
 
         for j in range(RUNS):
-            dat_file_p = f'{method_name}_{start},{stop}_{step}_r{j}.dat'
+            dat_file_p = f'{method_name}_{start},{end}_{step}_r{j}.dat'
             dat_file = Path(data_dir / dat_file_p)
             list_params.append({
                 'program': exe,
                 'start': start,
-                'end': stop,
+                'end': end,
                 'step': step,
                 'method': method_name,
                 'e': e,

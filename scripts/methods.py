@@ -31,7 +31,7 @@ def run_subprocess(params):
                params['step'],
                params['method'],
                params['e']]
-
+    print(command)
     with Popen(command, stdout=PIPE, text=True) as proc:
         with open(str(params['dat_file']), 'w') as f:
             f.write(proc.stdout.read())
