@@ -3,12 +3,11 @@
 import curses
 import json
 import os
-import subprocess
 import sys
 import time
 from multiprocessing import Pool
 from pathlib import Path
-from subprocess import Popen
+from subprocess import Popen, PIPE
 
 BASE_DIR = os.getenv('BASE_DIR', 'main')
 RUN_FILE = os.getenv('RUN_FILE', 'main')
@@ -26,15 +25,15 @@ def run_subprocess(params):
     """Run a program with given parameters.
 
     """
-    command = [str(params['program']),
+    command = [params['program'],
                params['start'],
                params['end'],
                params['step'],
                params['method'],
                params['e']]
 
-    with Popen(command, stdout=subprocess.PIPE, text=True) as proc:
-        with open(params['dat_file'], 'w') as f:
+    with Popen(command, stdout=PIPE, text=True) as proc:
+        with open(str(params['dat_file']), 'w') as f:
             f.write(proc.stdout.read())
 
 
@@ -56,7 +55,6 @@ def get_params(params_file, data_dir):
         end = str(method_data.get('end'))
         step = str(method_data.get('step'))
         e = str(method_data.get('e'))
-
         exe = Path(BASE_DIR) / Path(RUN_FILE)
 
         for j in range(RUNS):
@@ -83,7 +81,7 @@ def run(data_dir, json_file):
 
     try:
         process_pool = Pool(CORES)
-        result = process_pool.map(run_subprocess, list_params)
+        process_pool.map(run_subprocess, list_params)
     except KeyboardInterrupt as e:
         process_pool.terminate()
     except Exception as e:
