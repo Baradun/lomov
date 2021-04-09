@@ -24,6 +24,22 @@ double f_prof(double t, double v0, double n)
     return v0 * exp(-n * t);
 }
 
+void gen_points(double start, double end, double segments, function<double(double)> prof, vector <double> &v0, vector <double> &n)
+{   
+    double delta = (end-start) / segments;
+    for (; start < end; start+=delta)
+    {
+        double a = start;
+        double b = start + delta;
+        double middle  = (b + a) / 2.0;
+        double point = prof(middle);
+        std::cout << point << std::endl;
+        v0.push_back(point);
+        n.push_back(0);
+    }
+
+}
+
 class Methods
 {
 public:
@@ -334,14 +350,15 @@ int main(int argc, char *argv[])
         c12 * c13 * s13, s12 * c13 * s13, s13 * s13;
 
     // ----- other -----
-    // double v0 = 6.5956e4;
-    // double n = 10.54;
+    double d_v0 = 6.5956e4;
+    double d_n = 10.54;
+    function<double(double)> prof = [=](double t) { return f_prof(t, d_v0, d_n) ; };
 
-    vector <double> v0 = {6.5956e4, 6.5956e4, 6.5956e4 , 6.5956e4};
-    vector <double> n = {10.54, 10.54, 10.54 ,10.54};
-    Matrix<std::complex<double>, 3, 1> v;
+    vector <double> v0;
+    vector <double> n;
+    gen_points(start, end, segments, prof, v0, n);
+
     int i = 0;
-
     double delta = (end - start) / segments;
     while (i < segments)
     {
@@ -356,17 +373,16 @@ int main(int argc, char *argv[])
         
         std::cout << "H0 = " << H0 << std::endl;
         std::cout << "W = " << W << std::endl;
-        std::cout << "v = " << v1 << std::endl;
         std::cout << "start = " << start << " end = " << start + delta << " step = " << steps << std::endl;
-        run.print_more_info(v);
+        run.print_more_info(v1);
         std::cout << "------------------------------------------------------- " << std::endl;
         start += delta;
         i += 1;
     }
     
     
-    std::cout<<"P = "<<std::defaultfloat<<( c12*c12*c13*c13*abs(v(0))*abs(v(0))+
-                      s12*s12*c13*c13*abs(v(1))*abs(v(1))+
-                      s13*s13*abs(v(2))*abs(v(2)) ) << std::endl;
+    std::cout<<"P = "<<std::defaultfloat<<( c12*c12*c13*c13*abs(v1(0))*abs(v1(0))+
+                      s12*s12*c13*c13*abs(v1(1))*abs(v1(1))+
+                      s13*s13*abs(v1(2))*abs(v1(2)) ) << std::endl;
     return 0;
 }
