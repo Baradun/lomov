@@ -19,38 +19,48 @@ using Eigen::Matrix;
 
 class Methods;
 
-void gen_points(double start, double end, double segments, function<double(double)> prof, vector <double> &v0, vector <double> &n)
+struct intrvls
+{
+    double end;
+    double c;
+};
+
+
+
+void gen_points(const double start, const double end, const int segments, const function<double(double)> prof, vector<intrvls> &intervals)
 {   
     double delta = (end-start) / segments;
-    for (; start < end; start+=delta)
-    {
-        double a = start;
-        double b = start + delta;
+
+    for (double s = start; s < end; s+=delta)
+    {   
+        intrvls I;
+
+        double a = s;
+        double b = s + delta;
         double middle  = (b + a) / 2.0;
         double point = prof(middle);
+
         std::cout << point << std::endl;
-        v0.push_back(point);
-        n.push_back(0);
+        I.end = b;
+        I.c = point;
+
+        intervals.push_back(I);
     }
 }
 
-
-double f_prof(double t, double v0, double n, double segments)
+double f_prof(double t, double v0, double n)
 {
-    struct intervals
-    {
-        double start;
-        double end;
-    };
-    
-    vector <intervals> points;
+    return v0 * exp(-n * t);
+}
 
-    for (int i = 0; i < points.size() ; ++i)
+
+double f_prof_piecewise(double t, const vector <intrvls> &intervals)
+{
+    for(auto i: intervals)
     {
-        if (points[i].start <= t) and (t < points[i].end){
-            return v0 * exp(-n * t);
-        }
+        if (i.end > t) return i.c;
     }
+    return -1;
 }
 
 
@@ -337,7 +347,7 @@ int main(int argc, char *argv[])
     double steps = std::stod(argv[3]);
     string mthd = argv[4];
     double e = std::stod(argv[5]);
-    double segments = std::stod(argv[6]);
+    int segments = std::stoi(argv[6]);
 
 
     Matrix<std::complex<double>, 3, 1> v1;
@@ -367,7 +377,15 @@ int main(int argc, char *argv[])
     // ----- other -----
     double v0 = 6.5956e4;
     double n = 10.54;
-    function<double(double)> prof = [=](double t) { return f_prof(t, v0, n) ; };
+    function<double(double)> tmprr_prof = [=](double t) { return f_prof(t, v0, n) ; };
+    vector <intrvls> intervals; 
+
+
+    if (intervals.size() == 0){
+        gen_points(start, end, segments, tmprr_prof, intervals);
+    }
+
+    function<double(double)> prof = [=](double t) { return f_prof_piecewise(t, intervals) ; };
 
 
     Methods test = Methods(H0, W, v1, prof, start, end, steps, e);
