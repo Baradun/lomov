@@ -24,7 +24,7 @@ METHODS = ['M2', 'M4', 'M6', 'CF4', 'CF4:3']
 
 class Win:
     def __init__(self, list_params):
-
+        
         self.screen = curses.initscr()
         curses.curs_set(False)
         # curses.start_color()
@@ -33,6 +33,9 @@ class Win:
         self.win = curses.newwin(self.num_rows, self.num_cols, 0, 0)
         self.win.refresh()
         self.values = self.count(list_params)
+
+        self.start_time = time.time()
+
 
     @staticmethod
     def count(list_prams):
@@ -59,23 +62,28 @@ class Win:
             self.num_cols = new_num_cols
             self.win = curses.newwin(self.num_rows, self.num_cols, 0, 0)
 
-        for i in self.values:
-            if i.get("method") == name:
-                i['finished'] += 1
+        if name is not None:
+            for i in self.values:
+                if i.get("method") == name:
+                    i['finished'] += 1
 
-        line_number = 0
-        for deflot in self.values:
-            self.win.addstr(line_number, 0, deflot.get('method'))
-            total = deflot.get('total')
-            finished = deflot.get('finished')
+            line_number = 0
+            for deflot in self.values:
+                self.win.addstr(line_number, 0, deflot.get('method'))
+                total = deflot.get('total')
+                finished = deflot.get('finished')
 
-            persent_string = self.progress(total, finished)
+                persent_string = self.progress(total, finished)
 
-            self.win.addstr(
-                line_number, 8, f'[{persent_string}] ({finished:>5}/{total:>5})')
+                self.win.addstr(
+                    line_number, 8, f'[{persent_string}] ({finished:>5}/{total:>5})')
 
-            line_number += 1
-        # curses.napms(10)
+                line_number += 1
+        
+        delta = time.time() - self.start_time
+        self.win.addstr(5, 0, str(delta))
+
+
         self.win.refresh()
 
     def __del__(self):
@@ -156,12 +164,14 @@ def run(data_dir, json_file):
             if len(run_process) < CORES and len(list_process) != 0:
                 run_process.append(list_process.pop(0))
                 run_process[len(run_process)-1].start()
-                next
+                continue
 
             for i in run_process:
                 if not i.is_alive():
                     win.update(i.name)
                     run_process.remove(i)
+            
+            win.update(None)
 
         while len(run_process) != 0:
             for i in run_process:
