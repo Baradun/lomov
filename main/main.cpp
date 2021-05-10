@@ -216,6 +216,7 @@ public:
 
     void print_more_info(Matrix<complex<double>, 3, 1>& v)
     {
+        std::cout.precision(14);
         std::cout << "p = " << p << " q = " << q << std::endl;
         std::cout << "lb0 = " << lbd0 << " lbd1 = " << lbd1 << " lbd2 = " << lbd2 << std::endl;
         std::cout << "e = " << e << std::endl;
@@ -336,6 +337,7 @@ int main(int argc, char *argv[])
     double n = 10.54;
     function<double(double)> prof = [=](double t) { return f_prof(t, v0, n) ; };
 
+    std::cout.precision(14);
 
     Methods test = Methods(H0, W, v1, prof, start, end, steps, e);
     std::cout << "H0 = " << H0 << std::endl;
@@ -364,7 +366,7 @@ int main(int argc, char *argv[])
                       s12*s12*c13*c13*abs(v(1))*abs(v(1))+
                       s13*s13*abs(v(2))*abs(v(2)) ) << std::endl;
 
-    std::cout.precision(14);
+    
     std::cout << "time = " << time.count() << std::endl;
 
     return 0;

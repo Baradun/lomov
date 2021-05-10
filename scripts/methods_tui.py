@@ -80,8 +80,8 @@ class Win:
 
                 line_number += 1
         
-        delta = time.time() - self.start_time
-        self.win.addstr(5, 0, str(delta))
+        delta = str(int((time.time() - self.start_time)//60)) + ' min'
+        self.win.addstr(5, 0, delta)
 
 
         self.win.refresh()

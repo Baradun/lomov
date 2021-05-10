@@ -258,6 +258,7 @@ public:
 
     void print_more_info(Matrix<complex<double>, 3, 1>& v)
     {
+        std::cout.precision(14);
         std::cout << "p = " << p << " q = " << q << std::endl;
         std::cout << "lb0 = " << lbd0 << " lbd1 = " << lbd1 << " lbd2 = " << lbd2 << std::endl;
         std::cout << "e = " << e << std::endl;
@@ -409,13 +410,14 @@ int main(int argc, char *argv[])
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> time = (end_time - start_time);
 
+    std::cout.precision(14);
     std::cout << "------------------ final ---------------------" << std::endl;
     test.print_more_info(v);
     std::cout<<"P = "<<std::defaultfloat<<( c12*c12*c13*c13*abs(v(0))*abs(v(0))+
                       s12*s12*c13*c13*abs(v(1))*abs(v(1))+
                       s13*s13*abs(v(2))*abs(v(2)) ) << std::endl;
 
-    std::cout.precision(14);
+   
     std::cout << "time = " << time.count() << std::endl;
 
     return 0;

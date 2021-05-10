@@ -17,4 +17,4 @@ data
 build
 builddir
 test.py
-
+host#*
