@@ -8,6 +8,7 @@ plotting by gnuplot. Also do some statistical calculations on data.
 import os
 import sys
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
@@ -26,7 +27,6 @@ def info(content):
     """
 
     cntn = content.split()
-    # method = text[list.index('start') + 2]
     start = float(cntn[cntn.index('start') + 2])
     end = float(cntn[cntn.index('end') + 2])
     step = float(cntn[cntn.index('step') + 2])
@@ -161,8 +161,9 @@ def gen_gp_dat(data, graf_type=0):
                         reCF4 = EDGE_VALUE
                     if reCF43 == 0.0:
                         reCF43 = EDGE_VALUE
-                    gp_dat.write(f"{step}\t{reM2}\t{m2_p[k]}\t{reM4}\t\
-{m4_p[k]}\t{reM6}\t{m6_p[k]}\t{reCF4}\t{cf4_p[k]}\t{reCF43}\t{cf43_p[k]}\n")
+                    gp_dat.write(f"{step}\t{reM2}\t{m2_p[k]}\t{reM4}\t" +
+                                 f"{m4_p[k]}\t{reM6}\t{m6_p[k]}\t{reCF4}" +
+                                 f"\t{cf4_p[k]}\t{reCF43}\t{cf43_p[k]}\n")
 
     # x = step; y = time
     if graf_type == 1:
@@ -179,8 +180,8 @@ def gen_gp_dat(data, graf_type=0):
                 gp_dat.write("# STEP\tEXECUTION TIME\n")
                 gp_dat.write("#       M2\tM4\tM6\tCF4\tCF4:3\n")
                 for k, step in enumerate(steps):
-                    gp_dat.write(f"{step}\t{m2_t[k]}\t{m4_t[k]}\t{m6_t[k]}"+
-                                f"\t{cf4_t[k]}\t{cf43_t[k]}\n")
+                    gp_dat.write(f"{step}\t{m2_t[k]}\t{m4_t[k]}\t{m6_t[k]}" +
+                                 f"\t{cf4_t[k]}\t{cf43_t[k]}\n")
 
     # x = step; y = time
     if graf_type == 2:
@@ -204,23 +205,27 @@ def gen_gp_dat(data, graf_type=0):
                 gp_dat.write("## STEP\tRELATIVE EXECUTION TIME\n")
                 gp_dat.write("#       M2\tM4\tM6\tCF4\tCF4:3\n")
                 for k, step in enumerate(steps):
-                    gp_dat.write(f"{step}\t{m2_t[k]}\t{m4_t[k]}\t{m6_t[k]}\
-\t{cf4_t[k]}\t{cf43_t[k]}\n")
+                    gp_dat.write(f"{step}\t{m2_t[k]}\t{m4_t[k]}\t{m6_t[k]}" +
+                                 f"\t{cf4_t[k]}\t{cf43_t[k]}\n")
+    
+
+    with open(Path(OUT_DIR) / 'collected_data.csv', 'w') as d:
+        d.write(data.to_csv())
 
 
 if __name__ == '__main__':
 
     if not os.path.isdir(Path(DATA_DIR)):
-        print(f"We expect data to be in '{DATA_DIR}' directory, \
-but it is missing!")
+        print(f"We expect data to be in '{DATA_DIR}' directory, " +
+              "but it is missing!")
         sys.exit(1)
 
     if not os.path.isdir(Path(OUT_DIR)):
         try:
             os.mkdir(Path(OUT_DIR))
         except FileExistsError as err:
-            print(f"We need directory '{OUT_DIR}' to store generated file but \
-                    we got error while trying to create one: {err}")
+            print(f"We need directory '{OUT_DIR}' to store generated file but " +
+                    f"we got error while trying to create one: {err}")
         except:
             print("Unexpected error: ", sys.exc_info()[0])
             raise
