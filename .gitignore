@@ -13,6 +13,7 @@ logs
 /lp-rb_N500.dat
 /divd-diff-exp_N500.dat
 graphs
+all_graphs
 data
 build
 builddir
