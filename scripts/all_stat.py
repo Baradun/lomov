@@ -76,45 +76,46 @@ def gen_gp_dat(data, graf_type=0):
 
 
 
-        for rng in rngs:
-            c_rng = data[data['range'] == rng]
-            sel = c_rng[c_rng['method'] == REF_METHOD]
-            sel = sel[sel['step'] == REF_STEP]
-            bas_prob = sel['prob'].to_numpy()[0]
+        # for rng in rngs:
+        #     c_rng = data[data['range'] == rng]
+        #     sel = c_rng[c_rng['method'] == REF_METHOD]
+        #     sel = sel[sel['step'] == REF_STEP]
+        #     bas_prob = sel['prob'].to_numpy()[0]
 
-            rng_s = c_rng.sort_values('step')
-            steps = rng_s['step'].unique()
-            m2_p = rng_s[rng_s['method'] == 'M2']['prob'].to_numpy()
-            m4_p = rng_s[rng_s['method'] == 'M4']['prob'].to_numpy()
-            m6_p = rng_s[rng_s['method'] == 'M6']['prob'].to_numpy()
-            cf4_p = rng_s[rng_s['method'] == 'CF4']['prob'].to_numpy()
-            cf43_p = rng_s[rng_s['method'] == 'CF4:3']['prob'].to_numpy()
+        #     rng_s = c_rng.sort_values('step')
+        #     steps = rng_s['step'].unique()
+        #     m2_p = rng_s[rng_s['method'] == 'M2']['prob'].to_numpy()
+        #     m4_p = rng_s[rng_s['method'] == 'M4']['prob'].to_numpy()
+        #     m6_p = rng_s[rng_s['method'] == 'M6']['prob'].to_numpy()
+        #     cf4_p = rng_s[rng_s['method'] == 'CF4']['prob'].to_numpy()
+        #     cf43_p = rng_s[rng_s['method'] == 'CF4:3']['prob'].to_numpy()
 
-            with open(Path(OUT_DIR) / f'gt0_{rng}.dat', 'w') as gp_dat:
-                gp_dat.write("# STEP\tRELATIVE ERROR\tSURVIVAL PROBABILITY\n")
-                gp_dat.write("#       M2\tM4\tM6\tCF4\tCF4:3\n")
-                for k, step in enumerate(steps):
-                    reM2 = abs(m2_p[k] - bas_prob) / bas_prob
-                    reM4 = abs(m4_p[k] - bas_prob) / bas_prob
-                    reM6 = abs(m6_p[k] - bas_prob) / bas_prob
-                    reCF4 = abs(cf4_p[k] - bas_prob) / bas_prob
-                    reCF43 = abs(cf43_p[k] - bas_prob) / bas_prob
-                    # ### If a relative error equals to zero we will use some
-                    # ### EDGE value
-                    if reM2 == 0.0:
-                        reM2 = EDGE_VALUE
-                    if reM4 == 0.0:
-                        reM4 = EDGE_VALUE
-                    if reM6 == 0.0:
-                        reM6 = EDGE_VALUE
-                    if reCF4 == 0.0:
-                        reCF4 = EDGE_VALUE
-                    if reCF43 == 0.0:
-                        reCF43 = EDGE_VALUE
-                    gp_dat.write(f"{step}\t{reM2}\t{m2_p[k]}\t{reM4}\t" +
-                                 f"{m4_p[k]}\t{reM6}\t{m6_p[k]}\t{reCF4}" +
-                                 f"\t{cf4_p[k]}\t{reCF43}\t{cf43_p[k]}\n")
+        #     with open(Path(OUT_DIR) / f'gt0_{rng}.dat', 'w') as gp_dat:
+        #         gp_dat.write("# STEP\tRELATIVE ERROR\tSURVIVAL PROBABILITY\n")
+        #         gp_dat.write("#       M2\tM4\tM6\tCF4\tCF4:3\n")
+        #         for k, step in enumerate(steps):
+        #             reM2 = abs(m2_p[k] - bas_prob) / bas_prob
+        #             reM4 = abs(m4_p[k] - bas_prob) / bas_prob
+        #             reM6 = abs(m6_p[k] - bas_prob) / bas_prob
+        #             reCF4 = abs(cf4_p[k] - bas_prob) / bas_prob
+        #             reCF43 = abs(cf43_p[k] - bas_prob) / bas_prob
+        #             # ### If a relative error equals to zero we will use some
+        #             # ### EDGE value
+        #             if reM2 == 0.0:
+        #                 reM2 = EDGE_VALUE
+        #             if reM4 == 0.0:
+        #                 reM4 = EDGE_VALUE
+        #             if reM6 == 0.0:
+        #                 reM6 = EDGE_VALUE
+        #             if reCF4 == 0.0:
+        #                 reCF4 = EDGE_VALUE
+        #             if reCF43 == 0.0:
+        #                 reCF43 = EDGE_VALUE
+        #             gp_dat.write(f"{step}\t{reM2}\t{m2_p[k]}\t{reM4}\t" +
+        #                          f"{m4_p[k]}\t{reM6}\t{m6_p[k]}\t{reCF4}" +
+        #                          f"\t{cf4_p[k]}\t{reCF43}\t{cf43_p[k]}\n")
 
+    
     # x = step; y = time
     if graf_type == 1:
         for rng in rngs:
@@ -217,4 +218,4 @@ if __name__ == '__main__':
 
     data = collect_data()
     # print(data)
-    gen_gp_dat(data, 2)
+    gen_gp_dat(data, 0)
