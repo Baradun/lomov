@@ -3,9 +3,13 @@
 import os
 import sys
 from pathlib import Path
+from pprint import pprint
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+
+import graphs.stat as gs
 
 DATA_DIR = os.getenv("METHODS_DATA_DIR", "data")
 OUT_DIR = os.getenv("METHODS_GRAPH_DIR", "all_graphs")
@@ -18,23 +22,15 @@ EDGE_VALUE = 1e-8
 
 
 def collect_data():
-
+    #data = pd.DataFrame()
     data = pd.DataFrame()
+
     for i in os.listdir(DATA_DIR):
         if i.startswith('host'):
-            with open(DATA_DIR+'/' + i+'/graphs/collected_data.csv', 'r') as f:
-                csv = pd.read_csv(
-                    f,
-                    usecols=['range',
-                             'start',
-                             'end',
-                             'method',
-                             'step',
-                             'prob',
-                             'time'])
-                csv['host'] = i
-                data = data.append(csv, ignore_index=True)
-
+            data_t = pd.DataFrame(gs.collect_data(
+                Path(DATA_DIR) / str(i) / 'data'))
+            data_t['host'] = i
+            data = data.append(data_t, ignore_index=True)
     return data
 
 
@@ -56,66 +52,37 @@ def gen_gp_dat(data, graf_type=0):
                 data_t.loc[sel, 'rt'] = data[sel]['time'] / max_time
 
         for r in rngs:
-            with open(Path(OUT_DIR) / f'gt0_middle_{r}.dat', 'w') as d:
-                d.write(f"# {r}\n\n")
-                for s in steps:
-                    d.write(f'{s}\t')
+            with open(Path(OUT_DIR) / f'gt0_average_{r}.csv', 'w') as d:
+                d.write('step,')
+                for h in hosts:
                     for m in METHODS:
-                        sel = (data_t['range'] == r) & (
-                            data_t['step'] == s) & (data_t['method'] == m)
-                        value = data_t[sel]['rt'].sum()
-                        count = data_t[sel]['rt'].count()
-                        d.write(f'\t{value/count} ')
+                        d.write(f'{m}_{h},')
+                d.write('\n')
+
+
+        for r in rngs:
+            with open(Path(OUT_DIR) / f'gt0_average_{r}.csv', 'a') as d:
+                for s in steps:
+                    d.write(f'{s},')
+                    for h in hosts:
+                        for m in METHODS:
+                            # d.write('{m}_host')
+                            sel = (data_t['range'] == r) & (
+                                data_t['step'] == s) & (
+                                data_t['method'] == m) & (
+                                    data_t['host'] == h)
+                            value = data_t[sel]['rt'].sum()
+                            count = data_t[sel]['rt'].count()
+                            d.write(f'{value/count},')
                     d.write('\n')
                 d.write('\n\n')
-
-
-
-
-
-
-
-
-        # for rng in rngs:
-        #     c_rng = data[data['range'] == rng]
-        #     sel = c_rng[c_rng['method'] == REF_METHOD]
-        #     sel = sel[sel['step'] == REF_STEP]
-        #     bas_prob = sel['prob'].to_numpy()[0]
-
-        #     rng_s = c_rng.sort_values('step')
-        #     steps = rng_s['step'].unique()
-        #     m2_p = rng_s[rng_s['method'] == 'M2']['prob'].to_numpy()
-        #     m4_p = rng_s[rng_s['method'] == 'M4']['prob'].to_numpy()
-        #     m6_p = rng_s[rng_s['method'] == 'M6']['prob'].to_numpy()
-        #     cf4_p = rng_s[rng_s['method'] == 'CF4']['prob'].to_numpy()
-        #     cf43_p = rng_s[rng_s['method'] == 'CF4:3']['prob'].to_numpy()
-
-        #     with open(Path(OUT_DIR) / f'gt0_{rng}.dat', 'w') as gp_dat:
-        #         gp_dat.write("# STEP\tRELATIVE ERROR\tSURVIVAL PROBABILITY\n")
-        #         gp_dat.write("#       M2\tM4\tM6\tCF4\tCF4:3\n")
-        #         for k, step in enumerate(steps):
-        #             reM2 = abs(m2_p[k] - bas_prob) / bas_prob
-        #             reM4 = abs(m4_p[k] - bas_prob) / bas_prob
-        #             reM6 = abs(m6_p[k] - bas_prob) / bas_prob
-        #             reCF4 = abs(cf4_p[k] - bas_prob) / bas_prob
-        #             reCF43 = abs(cf43_p[k] - bas_prob) / bas_prob
-        #             # ### If a relative error equals to zero we will use some
-        #             # ### EDGE value
-        #             if reM2 == 0.0:
-        #                 reM2 = EDGE_VALUE
-        #             if reM4 == 0.0:
-        #                 reM4 = EDGE_VALUE
-        #             if reM6 == 0.0:
-        #                 reM6 = EDGE_VALUE
-        #             if reCF4 == 0.0:
-        #                 reCF4 = EDGE_VALUE
-        #             if reCF43 == 0.0:
-        #                 reCF43 = EDGE_VALUE
-        #             gp_dat.write(f"{step}\t{reM2}\t{m2_p[k]}\t{reM4}\t" +
-        #                          f"{m4_p[k]}\t{reM6}\t{m6_p[k]}\t{reCF4}" +
-        #                          f"\t{cf4_p[k]}\t{reCF43}\t{cf43_p[k]}\n")
-
-    
+        
+        for r in rngs:
+            with open(Path(OUT_DIR) / f'gt0_average_{r}.csv', 'r') as d:
+                clt_data = pd.read_csv(d)
+                clt_data.plot(clt_data.step, )
+                plt.show()
+        
     # x = step; y = time
     if graf_type == 1:
         for rng in rngs:
@@ -144,9 +111,6 @@ def gen_gp_dat(data, graf_type=0):
 
     # x = step; y = time
     if graf_type == 2:
-
-        steps = pd.unique(data['step'])
-        hosts = pd.unique(data['host'])
         data_t = data.copy()
         data_t.insert(8, 'rt', 0)
         for h in hosts:
@@ -155,29 +119,39 @@ def gen_gp_dat(data, graf_type=0):
                 max_time = data[sel]['time'].max()
                 data_t.loc[sel, 'rt'] = data[sel]['time'] / max_time
 
+        # for rng in rngs:
+        #     for host in hosts:
+        #         for mth in METHODS:
+        #             sel = (data_t['host'] == host) & (data_t['range'] == rng)
+        #             x = data_t[sel]
+
+        # for r in rngs:
+        #     for s in steps:
+        #         for m in METHODS:
+        #             sel = (data_t['range'] == r) & (
+        #                 data_t['step'] == s) & (data_t['method'] == m)
+        #             value = data_t[sel]['rt'].sum()
+        #             count = data_t[sel]['rt'].count()
+        #             d.write(f'\t{value/count} ')
         for r in rngs:
-            with open(Path(OUT_DIR) / f'gt2_middle_{r}.dat', 'w') as d:
-                d.write(f"# {r}\n\n")
-                for s in steps:
-                    d.write(f'{s}\t')
+            with open(Path(OUT_DIR) / f'gt2_collected_{r}.csv', 'w') as d:
+                d.write('step,')
+                for h in hosts:
                     for m in METHODS:
-                        sel = (data_t['range'] == r) & (
-                            data_t['step'] == s) & (data_t['method'] == m)
-                        value = data_t[sel]['rt'].sum()
-                        count = data_t[sel]['rt'].count()
-                        d.write(f'\t{value/count} ')
-                    d.write('\n')
-                d.write('\n\n')
+                        d.write(f'{m}_{h},')
+                d.write('\n')
+
 
         for rng in rngs:
-            with open(Path(OUT_DIR) / f'gt2_collected_{rng}.dat', 'w') as d:
-                d.write(f'{rng}\n\n')
+            with open(Path(OUT_DIR) / f'gt2_collected_{rng}.csv', 'a') as d:
+                # d.write(f'{rng}\n\n')
                 steps = pd.unique(data_t[data_t['range'] == rng]['step'])
                 for stp in steps:
-                    d.write(f'{stp}\t')
+                    d.write(f'{stp},')
                     # for m in METHODS:
                     for hst in hosts:
-                        sel = (data_t['host'] == hst) & (data_t['range'] == rng)
+                        sel = (data_t['host'] == hst) & (
+                            data_t['range'] == rng)
                         rng_s = data_t[sel]
                         rng_s = rng_s[rng_s['step'] == stp]
 
@@ -191,8 +165,8 @@ def gen_gp_dat(data, graf_type=0):
                                       'CF4']['rt'].to_numpy()
                         cf43_t = rng_s[rng_s['method'] ==
                                        'CF4:3']['rt'].to_numpy()
-                        d.write(f"\t{m2_t[0]}\t{m4_t[0]}\t{m6_t[0]}" +
-                                f"\t{cf4_t[0]}\t{cf43_t[0]}\t")
+                        d.write(f"{m2_t[0]},{m4_t[0]},{m6_t[0]}," +
+                                f"{cf4_t[0]},{cf43_t[0]},")
                     d.write('\n')
 
     with open(Path(OUT_DIR) / 'collected_data.csv', 'w') as d:
@@ -217,5 +191,5 @@ if __name__ == '__main__':
             raise
 
     data = collect_data()
-    # print(data)
-    gen_gp_dat(data, 0)
+    print(data)
+    gen_gp_dat(data, 2)
