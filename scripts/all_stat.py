@@ -3,11 +3,10 @@
 import os
 import sys
 from pathlib import Path
-from pprint import pprint
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 import graphs.stat as gs
 
@@ -21,19 +20,6 @@ REF_STEP = 1e-10
 EDGE_VALUE = 1e-8
 
 
-def collect_data():
-    #data = pd.DataFrame()
-    data = pd.DataFrame()
-
-    for i in os.listdir(DATA_DIR):
-        if i.startswith('host'):
-            data_t = pd.DataFrame(gs.collect_data(
-                Path(DATA_DIR) / str(i) / 'data'))
-            data_t['host'] = i
-            data = data.append(data_t, ignore_index=True)
-    return data
-
-
 def gen_gp_dat(data, graf_type=0):
 
     rngs = pd.unique(data['range'])
@@ -42,14 +28,6 @@ def gen_gp_dat(data, graf_type=0):
 
     # x = steps; y = err
     if graf_type == 0:
-        data_t = data.copy()
-        data_t.insert(8, 're', 0)
-        data_t.insert(9, 'sp', 0)
-        for h in hosts:
-            for r in rngs:
-                sel = (data['host'] == h) & (data['range'] == r)
-                max_time = data[sel]['time'].max()
-                data_t.loc[sel, 'rt'] = data[sel]['time'] / max_time
 
         for r in rngs:
             with open(Path(OUT_DIR) / f'gt0_average_{r}.csv', 'w') as d:
@@ -59,30 +37,28 @@ def gen_gp_dat(data, graf_type=0):
                         d.write(f'{m}_{h},')
                 d.write('\n')
 
-
         for r in rngs:
             with open(Path(OUT_DIR) / f'gt0_average_{r}.csv', 'a') as d:
                 for s in steps:
                     d.write(f'{s},')
                     for h in hosts:
                         for m in METHODS:
-                            # d.write('{m}_host')
-                            sel = (data_t['range'] == r) & (
-                                data_t['step'] == s) & (
-                                data_t['method'] == m) & (
-                                    data_t['host'] == h)
-                            value = data_t[sel]['rt'].sum()
-                            count = data_t[sel]['rt'].count()
-                            d.write(f'{value/count},')
+                            sel = (data['range'] == r) & (
+                                data['step'] == s) & (
+                                data['method'] == m) & (
+                                    data['host'] == h)
+                            re = data[sel]['re'].to_numpy()[0]
+                            sp = data[sel].to_numpy()[0]
+                            d.write(f'{re},{sp}')
                     d.write('\n')
                 d.write('\n\n')
-        
+
         for r in rngs:
             with open(Path(OUT_DIR) / f'gt0_average_{r}.csv', 'r') as d:
                 clt_data = pd.read_csv(d)
                 clt_data.plot(clt_data.step, )
                 plt.show()
-        
+
     # x = step; y = time
     if graf_type == 1:
         for rng in rngs:
@@ -111,8 +87,6 @@ def gen_gp_dat(data, graf_type=0):
 
     # x = step; y = time
     if graf_type == 2:
-        data_t = data.copy()
-        data_t.insert(8, 'rt', 0)
         for h in hosts:
             for r in rngs:
                 sel = (data['host'] == h) & (data['range'] == r)
@@ -141,7 +115,6 @@ def gen_gp_dat(data, graf_type=0):
                         d.write(f'{m}_{h},')
                 d.write('\n')
 
-
         for rng in rngs:
             with open(Path(OUT_DIR) / f'gt2_collected_{rng}.csv', 'a') as d:
                 # d.write(f'{rng}\n\n')
@@ -169,27 +142,28 @@ def gen_gp_dat(data, graf_type=0):
                                 f"{cf4_t[0]},{cf43_t[0]},")
                     d.write('\n')
 
-    with open(Path(OUT_DIR) / 'collected_data.csv', 'w') as d:
-        d.write(data.to_csv())
-
 
 if __name__ == '__main__':
 
-    if not os.path.isdir(Path(DATA_DIR)):
-        print(f"We expect data to be in '{DATA_DIR}' directory, " +
-              "but it is missing!")
-        sys.exit(1)
+    # if not os.path.isdir(Path(DATA_DIR)):
+    #     print(f"We expect data to be in '{DATA_DIR}' directory, " +
+    #           "but it is missing!")
+    #     sys.exit(1)
 
-    if not os.path.isdir(Path(OUT_DIR)):
-        try:
-            os.mkdir(Path(OUT_DIR))
-        except FileExistsError as err:
-            print(f"We need directory '{OUT_DIR}' to store generated file but " +
-                  f"we got error while trying to create one: {err}")
-        except:
-            print("Unexpected error: ", sys.exc_info()[0])
-            raise
+    # if not os.path.isdir(Path(OUT_DIR)):
+    #     try:
+    #         os.mkdir(Path(OUT_DIR))
+    #     except FileExistsError as err:
+    #         print(f"We need directory '{OUT_DIR}' to store generated file but " +
+    #               f"we got error while trying to create one: {err}")
+    #     except:
+    #         print("Unexpected error: ", sys.exc_info()[0])
+    #         raise
 
-    data = collect_data()
-    print(data)
-    gen_gp_dat(data, 2)
+    # data = gs.collect_all_data("data")
+    req_data = gs.required_data("data")
+    with open(Path(OUT_DIR) / 'collected_data.csv', 'w') as d:
+        d.write(req_data.to_csv())
+    print(req_data)
+
+    #gen_gp_dat(req_data, 0)
