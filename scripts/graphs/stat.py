@@ -148,7 +148,7 @@ def required_data(DATA_DIR):
     return data_t
 
 
-def gen_gp_dat(data, OUT_DIR, graf_type=0):
+def gen_gp_dat(OUT_DIR, graf_type=0):
     """Generate data files from results of program run.
 
     Data files are generated for each computed interval. They names are prefixed
@@ -176,16 +176,54 @@ def gen_gp_dat(data, OUT_DIR, graf_type=0):
     method (it is selected from the input data) on an intelval.
 
     """
+    if os.path.exists(Path(OUT_DIR) / 'collected_data.csv'):
+        with open(Path(OUT_DIR) / 'collected_data.csv', 'r') as d:
+            data = pd.read_csv(d)
+    else: 
+        data = required_data("data")
+        with open(Path(OUT_DIR) / 'collected_data.csv', 'w') as d:
+            d.write(data.to_csv())
+
 
     rngs = pd.unique(data['range'])
+    hosts = pd.unique(data['host'])
+    steps = pd.unique(data['step'])
+    methods = pd.unique(data['method'])
+    
+    
+    ret_data = pd.DataFrame()
+    ret_data.insert(0, 'step', 0)
+    ret_data.insert(1, 'range', 0)
+    for r in rngs:
+        ret_data = ret_data.append(pd.DataFrame({'step': steps, 'range': r}), ignore_index=True)
+        print(ret_data)
+    
 
-    # # x = steps; y = err
-    # if graf_type == 0:
 
+    index = 2
+    
+    if graf_type == 0:
+        types = ['re', 'sp']
+    if graf_type == 2:
+        types =  ['rt', ]
+    if graf_type == 1:
+        types =  ['time', ]
+    if graf_type == 3:
+        types =  ['prob', 'sp']
+    
+    
+    for h in hosts:
+        for m in methods:
+            for t in types:
+                cname = f'{m}_{h}_{t}'
+                ret_data.insert(index, cname, 0 )
+                index += 1
+                for r in rngs:
+                    for s in steps:
+                        sel1 = (data['host'] == h) & (data['method'] == m) &  (data['range'] == r) &  (data['step'] == s)
+                        sel2 = (ret_data['range'] == r) & (ret_data['step'] == s)
+                        ret_data.loc[sel2, cname] = data[sel1][t].to_numpy()[0]
 
-    # # x = step; y = time
-    # if graf_type == 1:
+    return ret_data
 
-    # # x = step; y = time
-    # if graf_type == 2:
 
