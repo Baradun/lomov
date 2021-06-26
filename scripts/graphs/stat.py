@@ -108,6 +108,7 @@ def required_data(DATA_DIR):
     data_t.insert(8, 'rt', 0)
     data_t.insert(9, 're', 0)
     data_t.insert(10, 'sp', 0)
+    data_t.insert(11, 'fre', 0)
 
     rngs = pd.unique(data_t['range'])
     hosts = pd.unique(data_t['host'])
@@ -148,7 +149,7 @@ def required_data(DATA_DIR):
     return data_t
 
 
-def gen_gp_dat(OUT_DIR, graf_type=0):
+def gen_gp_dat(OUT_DIR, types, methods=None, hosts=None, rngs=None):
     """Generate data files from results of program run.
 
     Data files are generated for each computed interval. They names are prefixed
@@ -184,34 +185,27 @@ def gen_gp_dat(OUT_DIR, graf_type=0):
         with open(Path(OUT_DIR) / 'collected_data.csv', 'w') as d:
             d.write(data.to_csv())
 
-
-    rngs = pd.unique(data['range'])
-    hosts = pd.unique(data['host'])
+    
     steps = pd.unique(data['step'])
-    methods = pd.unique(data['method'])
+    if rngs is None:
+        rngs = pd.unique(data['range'])
+    if hosts is None:
+        hosts = pd.unique(data['host'])
+    if methods is None:
+        methods = pd.unique(data['method'])
     
     
     ret_data = pd.DataFrame()
     ret_data.insert(0, 'step', 0)
     ret_data.insert(1, 'range', 0)
+    
+    print(data)
     for r in rngs:
         ret_data = ret_data.append(pd.DataFrame({'step': steps, 'range': r}), ignore_index=True)
-        print(ret_data)
     
 
 
     index = 2
-    
-    if graf_type == 0:
-        types = ['re', 'sp']
-    if graf_type == 2:
-        types =  ['rt', ]
-    if graf_type == 1:
-        types =  ['time', ]
-    if graf_type == 3:
-        types =  ['prob', 'sp']
-    
-    
     for h in hosts:
         for m in methods:
             for t in types:
