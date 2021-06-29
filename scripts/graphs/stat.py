@@ -106,9 +106,11 @@ def required_data(DATA_DIR):
 
     data_t = data.copy()
     data_t.insert(8, 'rt', 0)
-    data_t.insert(9, 're', 0)
-    data_t.insert(10, 'sp', 0)
-    data_t.insert(11, 'fre', 0)
+    data_t.insert(9, 'frt', 0)
+    data_t.insert(10, 're', 0)
+    data_t.insert(10, 'fre', 0)
+    data_t.insert(11, 'sp', 0)
+    
 
     rngs = pd.unique(data_t['range'])
     hosts = pd.unique(data_t['host'])
@@ -123,6 +125,20 @@ def required_data(DATA_DIR):
             max_time = data_t[sel]['time'].max()
             data_t.loc[sel, 'rt'] = data_t[sel]['time'] / max_time
 
+    # filling the 'frt' column
+    for r in rngs:
+        for s in steps:
+            for m in methods:
+                sel = (data_t['range'] == r) & (
+                    data_t['step'] == s) & (data_t['method'] == m)
+                ts = data_t[sel]['rt'].sum()
+                tc = data_t[sel]['rt'].count()
+                mid = ts / tc
+                data_t.loc[sel, 'frt'] =  (data_t[sel]['rt'] - mid) / mid
+
+
+
+
     # filling the 're' column
 
     for h in hosts:
@@ -132,9 +148,22 @@ def required_data(DATA_DIR):
             base_prob = data_t[sel]['prob'].to_numpy()[0]
             for m in methods:
                 sel = (data_t['host'] == h) & (
-                    data_t['range'] == r) & (data_t['method'] == m)
+                    data_t['range'] == r) & (data_t['method'] == m) 
                 data_t.loc[sel, 're'] = (
                     data_t[sel]['prob'] - base_prob) / base_prob
+    
+    
+    # filling the 'fre' column
+    for r in rngs:
+        for s in steps:
+            for m in methods:
+                sel = (data_t['range'] == r) & (
+                    data_t['step'] == s) & (data_t['method'] == m)
+                ts = data_t[sel]['re'].sum()
+                tc = data_t[sel]['re'].count()
+                mid = ts / tc
+                data_t.loc[sel, 'fre'] =  (data_t[sel]['re'] - mid) / mid
+
 
     # filling the 'sp' column
     for r in rngs:
