@@ -36,60 +36,98 @@ def collect_data(DATA_DIR):
 
     Also do some statistical calculations.
     """
-
-    data_t = {k: [] for k in METHODS}
-    for m in METHODS:
-        tt = dict()
-        met = []
-        for f in Path(DATA_DIR).glob(m + '*.dat'):
-            with open(f, 'r') as fil:
-                data = fil.read()
-                # Possible issue: if for some reason file exists but doesn't
-                # contain necessary information, for example, file was created
-                # before data were written and the process was killed, or if
-                # file was written by other programs with other parameter
-                # listing style.
-                start, end, step, time, P = info(data)
-                idx = f"{start},{end}_{step}"
-                if idx not in tt:
-                    tt[idx] = [float(time), 1]
-                    met.append(
-                        {
-                            'start': start,
-                            'end': end,
-                            'step': step,
-                            'prob': P,
-                            'time': 0.0
-                        }
-                    )
-                    continue
-                tt[idx][0] = tt[idx][0] + float(time)
-                tt[idx][1] = tt[idx][1] + 1
-        for itm in met:
-            idx = f"{itm['start']},{itm['end']}_{itm['step']}"
-            itm['time'] = tt[idx][0] / tt[idx][1]
-        data_t[m] = met
-
-    data_c = []
-    for m in METHODS:
-        for el in data_t[m]:
-            data_c.append(
+    r_data = []
+    for f in Path(DATA_DIR).glob('*.dat'):
+        with open(f, 'r') as fil:
+            tf = str(f)
+            run = tf[tf.rindex('_')+2:tf.find('.dat')]
+            method = tf[tf.rindex('/')+1:tf.index('_')]
+            
+            data = fil.read()
+            start, end, step, time, P = info(data)
+            rng = f"({start},{end})"
+            r_data.append(
                 {
-                    "range": f"({el['start']},{el['end']})",
-                    "start": el['start'],
-                    "end": el['end'],
-                    "method": m,
-                    "step": el['step'],
-                    "prob": el['prob'],
-                    "time": el['time']
+                    "range": rng,
+                    "start": start,
+                    "end": end,
+                    'run': run,
+                    "method": method,
+                    "step": step,
+                    "prob": P, # prob
+                    "time": time
                 }
             )
+    
+    
+    return r_data
+    
+    
+    
+    
+    
+    
+    # data_t = {k: [] for k in METHODS}
+    # for m in METHODS:
+    #     tt = dict()
+    #     met = []
+    #     for f in Path(DATA_DIR).glob('*.dat'):
+    #         with open(f, 'r') as fil:
+    #             tf = str(f)
+    #             run = tf[tf.rindex('_')+2:tf.find('.dat')]
+                
+    #             data = fil.read()
+    #             # Possible issue: if for some reason file exists but doesn't
+    #             # contain necessary information, for example, file was created
+    #             # before data were written and the process was killed, or if
+    #             # file was written by other programs with other parameter
+    #             # listing style.
+    #             start, end, step, time, P = info(data)
+    #             idx = f"{start},{end}_{step}"
+                
+    #             if idx not in tt:
+    #                 tt[idx] = [float(time), 1]
+    #                 met.append(
+    #                     {
+    #                         'start': start,
+    #                         'end': end,
+    #                         'run': run,
+    #                         'step': step,
+    #                         'prob': P,
+    #                         'time': 0.0
+    #                     }
+    #                 )
+    #                 continue
+    #             tt[idx][0] = tt[idx][0] + float(time) 
+    #             tt[idx][1] = tt[idx][1] + 1
+        
+    #     print(tt)
+    #     for itm in met:
+    #         idx = f"{itm['start']},{itm['end']}_{itm['step']}"
+    #         itm['time'] = tt[idx][0] / tt[idx][1]
+    #     data_t[m] = met
 
-    return data_c
+    # print(data_t)
+    # data_c = []
+    # for m in METHODS:
+    #     for el in data_t[m]:
+    #         data_c.append(
+    #             {
+    #                 "range": f"({el['start']},{el['end']})",
+    #                 "start": el['start'],
+    #                 "end": el['end'],
+    #                 'run': el['run'],
+    #                 "method": m,
+    #                 "step": el['step'],
+    #                 "prob": el['prob'],
+    #                 "time": el['time']
+    #             }
+    #         )
+
+    # return data_c
 
 
 def collect_all_data(DATA_DIR):
-    #data = pd.DataFrame()
     data = pd.DataFrame()
 
     for i in os.listdir(DATA_DIR):
@@ -98,24 +136,51 @@ def collect_all_data(DATA_DIR):
                 Path(DATA_DIR) / str(i) / 'data'))
             data_t['host'] = i
             data = data.append(data_t, ignore_index=True)
+    
+    print(data)
     return data
 
 
 def required_data(DATA_DIR):
     data = collect_all_data(DATA_DIR)
-
-    data_t = data.copy()
-    data_t.insert(8, 'rt', 0)
-    data_t.insert(9, 'frt', 0)
-    data_t.insert(10, 're', 0)
-    data_t.insert(10, 'fre', 0)
-    data_t.insert(11, 'sp', 0)
     
-
+    data_t = data.copy()
+    
+    data_t.insert(8, 'avrg_t', 0)
+    data_t.insert(9, 'dsprsn_t', 0)
+    data_t.insert(10, 'rt', 0)
+    data_t.insert(11, 'frt', 0)
+    data_t.insert(12, 're', 0)
+    data_t.insert(13, 'fre', 0)
+    data_t.insert(14, 'sp', 0)
+    
+    runs = pd.unique(data_t['run'])
     rngs = pd.unique(data_t['range'])
     hosts = pd.unique(data_t['host'])
     steps = pd.unique(data_t['step'])
     methods = pd.unique(data_t['method'])
+
+    # filling the 'avrg_t' and 'dsprsn_t'
+
+    for h in hosts:
+        for r in rngs:
+            for m in methods:
+                for s in steps:
+                    sel = (data_t['host'] == h) & (data_t['range'] == r) & (data_t['method'] == m) & (data_t['step'] == s)
+                    ts = data_t[sel]['time'].sum()
+                    tc = data_t[sel]['time'].count()
+                    mid = ts / tc
+                    data_t.loc[sel, 'avrg_t'] = mid
+
+                    
+                    # td = 0 
+                    # for run in runs:
+                    #     tsel = (data_t['host'] == h) & (data_t['range'] == r) & (data_t['method'] == m) & (data_t['step'] == s) & (data_t['run'] == run)
+                    #     td += (data_t[tsel]['time'].to_numpy()[0] - mid)**2
+                    # data_t.loc[sel, 'dsprsn_t'] = td/tc
+
+
+
 
     # filling the 'rt' column
 
@@ -123,18 +188,38 @@ def required_data(DATA_DIR):
         for r in rngs:
             sel = (data_t['host'] == h) & (data_t['range'] == r)
             max_time = data_t[sel]['time'].max()
-            data_t.loc[sel, 'rt'] = data_t[sel]['time'] / max_time
+            data_t.loc[sel, 'rt'] = data_t[sel]['avrg_t'] / max_time
 
-    # filling the 'frt' column
+     # filling the 'frt' column
     for r in rngs:
         for s in steps:
             for m in methods:
+                r0_sel = (data_t['range'] == r) & (
+                    data_t['step'] == s) & (data_t['method'] == m) # & (data_t['run'] == 0)
+                ts = data_t[r0_sel]['rt'].sum()
+                tc = data_t[r0_sel]['rt'].count()
+                mid = ts / tc
                 sel = (data_t['range'] == r) & (
                     data_t['step'] == s) & (data_t['method'] == m)
-                ts = data_t[sel]['rt'].sum()
-                tc = data_t[sel]['rt'].count()
-                mid = ts / tc
                 data_t.loc[sel, 'frt'] =  (data_t[sel]['rt'] - mid) / mid
+
+    for h in hosts:
+        for r in rngs:
+            for m in methods:
+                for s in steps:
+                    sel = (data_t['host'] == h) & (data_t['range'] == r) & (data_t['method'] == m) & (data_t['step'] == s)
+                    ts = data_t[sel]['rt'].sum()
+                    tc = data_t[sel]['rt'].count()
+                    mid = ts / tc
+                    td = 0 
+                    for run in runs:
+                        tsel = (data_t['host'] == h) & (data_t['range'] == r) & (data_t['method'] == m) & (data_t['step'] == s) & (data_t['run'] == run)
+                        td += (data_t[tsel]['rt'].to_numpy()[0] - mid)**2
+
+                    
+                    data_t.loc[sel, 'dsprsn_t'] = np.sqrt(td/tc)
+
+   
 
 
 
@@ -228,7 +313,6 @@ def gen_gp_dat(OUT_DIR, types, methods=None, hosts=None, rngs=None):
     ret_data.insert(0, 'step', 0)
     ret_data.insert(1, 'range', 0)
     
-    print(data)
     for r in rngs:
         ret_data = ret_data.append(pd.DataFrame({'step': steps, 'range': r}), ignore_index=True)
     
@@ -245,7 +329,7 @@ def gen_gp_dat(OUT_DIR, types, methods=None, hosts=None, rngs=None):
                     for s in steps:
                         sel1 = (data['host'] == h) & (data['method'] == m) &  (data['range'] == r) &  (data['step'] == s)
                         sel2 = (ret_data['range'] == r) & (ret_data['step'] == s)
-                        ret_data.loc[sel2, cname] = data[sel1][t].to_numpy()[0]
+                        ret_data.loc[sel2, cname] = data[sel1][t].to_numpy()[0] # ???????????????????????
 
     return ret_data
 

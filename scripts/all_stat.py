@@ -15,7 +15,7 @@ OUT_DIR = os.getenv("METHODS_GRAPH_DIR", "all_graphs")
 
 
 def mrk():
-    m = "*HsXv^2348"
+    m = "*HsXv^2348"*20
     for i in m:
         yield i
 
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     methods = ["CF4:3"]
     host = ['host#b9ec88ad']
     data_to_graf = gs.gen_gp_dat(
-        OUT_DIR, ['fre', ], methods=methods, rngs=['(0.1,0.3)'], )
+        OUT_DIR, ['dsprsn_t' ], hosts=host, rngs=['(0.1,0.3)'], )
     print(data_to_graf)
 
     data_t = data_to_graf.sort_values(by='step')
