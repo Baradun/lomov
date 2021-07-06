@@ -65,8 +65,6 @@ def collect_data(DATA_DIR):
     
     
     
-    
-    
     # data_t = {k: [] for k in METHODS}
     # for m in METHODS:
     #     tt = dict()
@@ -142,103 +140,114 @@ def collect_all_data(DATA_DIR):
 
 
 def required_data(DATA_DIR):
+    
+    
     data = collect_all_data(DATA_DIR)
+    all_data_t = data.copy()
     
-    data_t = data.copy()
-    
-    data_t.insert(8, 'avrg_t', 0)
-    data_t.insert(9, 'dsprsn_t', 0)
-    data_t.insert(10, 'rt', 0)
-    data_t.insert(11, 'frt', 0)
-    data_t.insert(12, 're', 0)
-    data_t.insert(13, 'fre', 0)
-    data_t.insert(14, 'sp', 0)
-    
-    runs = pd.unique(data_t['run'])
-    rngs = pd.unique(data_t['range'])
-    hosts = pd.unique(data_t['host'])
-    steps = pd.unique(data_t['step'])
-    methods = pd.unique(data_t['method'])
+    runs = pd.unique(data['run'])
+    rngs = pd.unique(data['range'])
+    hosts = pd.unique(data['host'])
+    steps = pd.unique(data['step'])
+    methods = pd.unique(data['method'])
 
-    # filling the 'avrg_t' and 'dsprsn_t'
+    data_t = pd.DataFrame({
+        'host':[],
+        'range':[],
+        'step':[],
+        'method':[],
+    })
+    for h in hosts:
+        for r in rngs:
+            for m in methods:
+                for s in steps:
+                    data_t.loc[len(data_t.index)] = [h,r,s,m]
+
+
+    # filling the 'mean' and 'std'
+
+
+    data_t.insert(4, 'mean', 0)
+    data_t.insert(5, 'std', 0)
+
+
 
     for h in hosts:
         for r in rngs:
             for m in methods:
                 for s in steps:
-                    sel = (data_t['host'] == h) & (data_t['range'] == r) & (data_t['method'] == m) & (data_t['step'] == s)
-                    ts = data_t[sel]['time'].sum()
-                    tc = data_t[sel]['time'].count()
-                    mid = ts / tc
-                    data_t.loc[sel, 'avrg_t'] = mid
-
                     
+                    sel = (all_data_t['host'] == h) & (all_data_t['range'] == r) & (all_data_t['method'] == m) & (all_data_t['step'] == s)
+                    # ts = all_data_t[sel]['time'].sum()
+                    # tc = all_data_t[sel]['time'].count()
+                    
+                    mt = all_data_t[sel]['time'].to_numpy()
+                    mta = mt.mean()
+                    rt = (mt - mta)/mta
+
+
+
+                    # mid = ts / tc
+                    sel_t = (data_t['host'] == h) & (data_t['range'] == r) & (data_t['method'] == m) & (data_t['step'] == s)
+                    data_t.loc[sel_t, 'mean'] = rt.mean()
+                    data_t.loc[sel_t, 'std'] = rt.std()
+                    
+
                     # td = 0 
                     # for run in runs:
-                    #     tsel = (data_t['host'] == h) & (data_t['range'] == r) & (data_t['method'] == m) & (data_t['step'] == s) & (data_t['run'] == run)
-                    #     td += (data_t[tsel]['time'].to_numpy()[0] - mid)**2
-                    # data_t.loc[sel, 'dsprsn_t'] = td/tc
-
-
+                    #     tsel = (all_data_t['host'] == h) & (all_data_t['range'] == r) & (all_data_t['method'] == m) & (all_data_t['step'] == s) & (all_data_t['run'] == run)
+                    #     td += (all_data_t[tsel]['time'].to_numpy()[0] - mid)**2
+                    # data_t.loc[sel_t, 'std'] = np.sqrt(td/tc)
 
 
     # filling the 'rt' column
+    data_t.insert(6, 'rt', 0)
 
     for h in hosts:
         for r in rngs:
             sel = (data_t['host'] == h) & (data_t['range'] == r)
-            max_time = data_t[sel]['time'].max()
-            data_t.loc[sel, 'rt'] = data_t[sel]['avrg_t'] / max_time
+            max_time = data_t[sel]['mean'].max()
+            data_t.loc[sel, 'rt'] = data_t[sel]['mean'] / max_time
 
-     # filling the 'frt' column
+
+    # filling the 'frt' column
+    data_t.insert(7, 'frt', 0)
     for r in rngs:
         for s in steps:
             for m in methods:
-                r0_sel = (data_t['range'] == r) & (
-                    data_t['step'] == s) & (data_t['method'] == m) # & (data_t['run'] == 0)
-                ts = data_t[r0_sel]['rt'].sum()
-                tc = data_t[r0_sel]['rt'].count()
-                mid = ts / tc
                 sel = (data_t['range'] == r) & (
                     data_t['step'] == s) & (data_t['method'] == m)
+                ts = data_t[sel]['rt'].sum()
+                tc = data_t[sel]['rt'].count()
+                mid = ts / tc
                 data_t.loc[sel, 'frt'] =  (data_t[sel]['rt'] - mid) / mid
-
-    for h in hosts:
-        for r in rngs:
-            for m in methods:
-                for s in steps:
-                    sel = (data_t['host'] == h) & (data_t['range'] == r) & (data_t['method'] == m) & (data_t['step'] == s)
-                    ts = data_t[sel]['rt'].sum()
-                    tc = data_t[sel]['rt'].count()
-                    mid = ts / tc
-                    td = 0 
-                    for run in runs:
-                        tsel = (data_t['host'] == h) & (data_t['range'] == r) & (data_t['method'] == m) & (data_t['step'] == s) & (data_t['run'] == run)
-                        td += (data_t[tsel]['rt'].to_numpy()[0] - mid)**2
-
-                    
-                    data_t.loc[sel, 'dsprsn_t'] = np.sqrt(td/tc)
-
-   
-
-
 
 
     # filling the 're' column
+    data_t.insert(8, 'prob', 0)
+    data_t.insert(9, 're', 0)
 
     for h in hosts:
         for r in rngs:
-            sel = (data_t['host'] == h) & (data_t['range'] == r) & (
-                data_t['step'] == REF_STEP) & (data_t['method'] == REF_METHOD)
-            base_prob = data_t[sel]['prob'].to_numpy()[0]
+            sel = (all_data_t['host'] == h) & (all_data_t['range'] == r) & (
+                all_data_t['step'] == REF_STEP) & (all_data_t['method'] == REF_METHOD)
+            prob_s = all_data_t[sel]['prob'].sum()
+            prob_c = all_data_t[sel]['prob'].count()
+            
+            base_prob = prob_s/prob_c
             for m in methods:
-                sel = (data_t['host'] == h) & (
-                    data_t['range'] == r) & (data_t['method'] == m) 
-                data_t.loc[sel, 're'] = (
-                    data_t[sel]['prob'] - base_prob) / base_prob
-    
+                for s in steps: 
+                    sel = (all_data_t['host'] == h) & (all_data_t['range'] == r) & (all_data_t['method'] == m) & (all_data_t['step'] == s)
+                    prob_st = all_data_t[sel]['prob'].sum()
+                    prob_ct = all_data_t[sel]['prob'].count()
+                    prob = prob_st/prob_ct 
+                    sel_t = (data_t['host'] == h) & (data_t['range'] == r) & (data_t['method'] == m) & (data_t['step'] == s)
+                    data_t.loc[sel_t, 'prob'] = prob
+                    data_t.loc[sel_t, 're'] = (prob - base_prob) / base_prob
     
     # filling the 'fre' column
+    
+    data_t.insert(10, 'fre', 0)
     for r in rngs:
         for s in steps:
             for m in methods:
@@ -249,8 +258,9 @@ def required_data(DATA_DIR):
                 mid = ts / tc
                 data_t.loc[sel, 'fre'] =  (data_t[sel]['re'] - mid) / mid
 
-
     # filling the 'sp' column
+
+    data_t.insert(11, 'sp', 0)
     for r in rngs:
         for s in steps:
             for m in methods:
@@ -260,6 +270,31 @@ def required_data(DATA_DIR):
                 tc = data_t[sel]['prob'].count()
                 data_t.loc[sel, 'sp'] = ts / tc
 
+
+    print(data_t)
+    data_t = data_t.sort_values(by=["method", "step", "range"])
+    header = ["method", "step", "range", "host", 'mean','std']
+    data_t.to_csv('techinfo.csv', columns = header)
+
+
+
+
+    # out = Path('data')
+    # for h in hosts:
+    #     for r in rngs:
+    #         for m in methods:
+    #             with open((out / f'{h}_{r}_{m}.dat'), 'w') as f:
+    #                 for s in steps:
+                    
+    #                     sel = (data_t['host'] == h) & (data_t['range'] == r) & (data_t['method'] == m) & (data_t['step'] == s)
+    #                     mid = data_t[sel]['mean'].to_numpy()[0]
+                        
+    #                     for run in runs:
+    #                         tsel = (all_data_t['host'] == h) & (all_data_t['range'] == r) & (all_data_t['method'] == m) & (all_data_t['step'] == s) & (all_data_t['run'] == run)
+    #                         time = all_data_t[tsel]['time'].to_numpy()[0]
+    #                         f.write(f'{s}\t{mid}\t{time}\t{(time-mid)/mid}\n')
+
+    
     return data_t
 
 
