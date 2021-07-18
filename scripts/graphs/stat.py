@@ -6,11 +6,13 @@ plotting by gnuplot. Also do some statistical calculations on data.
 """
 
 import os
+#from scripts.all_stat import DATA_DIR
 import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from pandas.core.frame import DataFrame
 
 REF_METHOD = "M6"
 REF_STEP = 1e-10
@@ -42,7 +44,7 @@ def collect_data(DATA_DIR):
             tf = str(f)
             run = tf[tf.rindex('_')+2:tf.find('.dat')]
             method = tf[tf.rindex('/')+1:tf.index('_')]
-            
+
             data = fil.read()
             start, end, step, time, P = info(data)
             rng = f"({start},{end})"
@@ -54,17 +56,13 @@ def collect_data(DATA_DIR):
                     'run': run,
                     "method": method,
                     "step": step,
-                    "prob": P, # prob
+                    "prob": P,  # prob
                     "time": time
                 }
             )
-    
-    
+
     return r_data
-    
-    
-    
-    
+
     # data_t = {k: [] for k in METHODS}
     # for m in METHODS:
     #     tt = dict()
@@ -73,7 +71,7 @@ def collect_data(DATA_DIR):
     #         with open(f, 'r') as fil:
     #             tf = str(f)
     #             run = tf[tf.rindex('_')+2:tf.find('.dat')]
-                
+
     #             data = fil.read()
     #             # Possible issue: if for some reason file exists but doesn't
     #             # contain necessary information, for example, file was created
@@ -82,7 +80,7 @@ def collect_data(DATA_DIR):
     #             # listing style.
     #             start, end, step, time, P = info(data)
     #             idx = f"{start},{end}_{step}"
-                
+
     #             if idx not in tt:
     #                 tt[idx] = [float(time), 1]
     #                 met.append(
@@ -96,9 +94,9 @@ def collect_data(DATA_DIR):
     #                     }
     #                 )
     #                 continue
-    #             tt[idx][0] = tt[idx][0] + float(time) 
+    #             tt[idx][0] = tt[idx][0] + float(time)
     #             tt[idx][1] = tt[idx][1] + 1
-        
+
     #     print(tt)
     #     for itm in met:
     #         idx = f"{itm['start']},{itm['end']}_{itm['step']}"
@@ -134,238 +132,190 @@ def collect_all_data(DATA_DIR):
                 Path(DATA_DIR) / str(i) / 'data'))
             data_t['host'] = i
             data = data.append(data_t, ignore_index=True)
-    
+
     print(data)
     return data
 
 
-def required_data(DATA_DIR):
+
+
+
+class DataAnalysis():
+    def __init__(self, data):
+        self.data = data
+        self.runs = pd.unique(data['run'])
+        self.rngs = pd.unique(data['range'])
+        self.hosts = pd.unique(data['host'])
+        self.steps = pd.unique(data['step'])
+        self.methods = pd.unique(data['method'])
+
+        self.data_rt = pd.DataFrame({
+            'host': [],
+            'range': [],
+            'step': [],
+            'method': [],
+        })
+
+        for h in self.hosts:
+            for r in self.rngs:
+                for m in self.methods:
+                    for s in self.steps:
+                        self.data_rt.loc[len(self.data_rt.index)] = [h, r, s, m]
+
+    def time_infm(self):
+        self.data_rt.insert(0, 'mean_time', 0)
+        self.data_rt.insert(0, 'std_time', 0)
+        
+        for h in self.hosts:
+            for r in self.rngs:
+                for m in self.methods:
+                    for s in self.steps:
+
+                        sel = (self.data['host'] == h) & (
+                               self.data['range'] == r) & (
+                               self.data['method'] == m) & (
+                               self.data['step'] == s)
+                        sel_rt = (self.data_rt['host'] == h) & (
+                                  self.data_rt['range'] == r) & (
+                                  self.data_rt['method'] == m) & (
+                                  self.data_rt['step'] == s)
+
+                        mt = self.data[sel]['time'].to_numpy()
+
+                        self.data_rt.loc[sel_rt, 'mean_time'] = float(mt.mean())
+                        self.data_rt.loc[sel_rt, 'std_time'] = float(mt.std())
+
+        # filling the 'rt' column
+        self.data_rt.insert(0, 'rt', 0)
+        self.data_rt.insert(0, 'rstd_time', 0)
+        
+        for h in self.hosts:
+            for r in self.rngs:
+                sel = (self.data_rt['host'] == h) & (self.data_rt['range'] == r)
+                max_time = self.data_rt[sel]['mean_time'].max()
+                self.data_rt.loc[sel, 'rt'] = self.data_rt[sel]['mean_time'] / max_time
+
+        # filling the 'frt' column
+        self.data_rt.insert(0, 'frt', 0)
+        for r in self.rngs:
+            for s in self.steps:
+                for m in self.methods:
+                    sel = (self.data_rt['range'] == r) & (
+                           self.data_rt['step'] == s) & (
+                           self.data_rt['method'] == m)
+
+                    mid = self.data_rt[sel]['rt'].to_numpy().mean()
+                    self.data_rt.loc[sel, 'frt'] = (self.data_rt[sel]['rt'] - mid) / mid
+        
+        print(self.data_rt)
+        return self.data_rt
     
-    
-    data = collect_all_data(DATA_DIR)
-    all_data_t = data.copy()
-    
-    runs = pd.unique(data['run'])
-    rngs = pd.unique(data['range'])
-    hosts = pd.unique(data['host'])
-    steps = pd.unique(data['step'])
-    methods = pd.unique(data['method'])
 
-    data_t = pd.DataFrame({
-        'host':[],
-        'range':[],
-        'step':[],
-        'method':[],
-    })
-    for h in hosts:
-        for r in rngs:
-            for m in methods:
-                for s in steps:
-                    data_t.loc[len(data_t.index)] = [h,r,s,m]
+    def prob_infm(self):
+        # filling the 're' column
+        self.data_rt.insert(0, 'prob', 0)
+        self.data_rt.insert(0, 're', 0)
 
+        for h in self.hosts:
+            for r in self.rngs:
+                sel = (self.data['host'] == h) & (self.data['range'] == r) & (
+                    self.data['step'] == REF_STEP) & (self.data['method'] == REF_METHOD)
+                base_prob = self.data[sel]['prob'].to_numpy().mean()
 
-    # filling the 'mean' and 'std'
+                for m in self.methods:
+                    for s in self.steps:
+                        sel = (self.data_rt['host'] == h) & (self.data['range'] == r) & (
+                            self.data['method'] == m) & (self.data['step'] == s)
+                        prob = self.data[sel]['prob'].to_numpy().mean()
+                        sel_t = (self.data_rt['host'] == h) & (self.data_rt['range'] == r) & (
+                            self.data_rt['method'] == m) & (self.data_rt['step'] == s)
+                        self.data_rt.loc[sel_t, 'prob'] = prob
+                        self.data_rt.loc[sel_t, 're'] = (prob - base_prob) / base_prob
 
+        # filling the 'fre' column
 
-    data_t.insert(4, 'mean', 0)
-    data_t.insert(5, 'std', 0)
-
-
-
-    for h in hosts:
-        for r in rngs:
-            for m in methods:
-                for s in steps:
-                    
-                    sel = (all_data_t['host'] == h) & (all_data_t['range'] == r) & (all_data_t['method'] == m) & (all_data_t['step'] == s)
-                    # ts = all_data_t[sel]['time'].sum()
-                    # tc = all_data_t[sel]['time'].count()
-                    
-                    mt = all_data_t[sel]['time'].to_numpy()
-                    mta = mt.mean()
-                    rt = (mt - mta)/mta
-
-
-
-                    # mid = ts / tc
-                    sel_t = (data_t['host'] == h) & (data_t['range'] == r) & (data_t['method'] == m) & (data_t['step'] == s)
-                    data_t.loc[sel_t, 'mean'] = rt.mean()
-                    data_t.loc[sel_t, 'std'] = rt.std()
-                    
-
-                    # td = 0 
-                    # for run in runs:
-                    #     tsel = (all_data_t['host'] == h) & (all_data_t['range'] == r) & (all_data_t['method'] == m) & (all_data_t['step'] == s) & (all_data_t['run'] == run)
-                    #     td += (all_data_t[tsel]['time'].to_numpy()[0] - mid)**2
-                    # data_t.loc[sel_t, 'std'] = np.sqrt(td/tc)
-
-
-    # filling the 'rt' column
-    data_t.insert(6, 'rt', 0)
-
-    for h in hosts:
-        for r in rngs:
-            sel = (data_t['host'] == h) & (data_t['range'] == r)
-            max_time = data_t[sel]['mean'].max()
-            data_t.loc[sel, 'rt'] = data_t[sel]['mean'] / max_time
-
-
-    # filling the 'frt' column
-    data_t.insert(7, 'frt', 0)
-    for r in rngs:
-        for s in steps:
-            for m in methods:
-                sel = (data_t['range'] == r) & (
-                    data_t['step'] == s) & (data_t['method'] == m)
-                ts = data_t[sel]['rt'].sum()
-                tc = data_t[sel]['rt'].count()
-                mid = ts / tc
-                data_t.loc[sel, 'frt'] =  (data_t[sel]['rt'] - mid) / mid
-
-
-    # filling the 're' column
-    data_t.insert(8, 'prob', 0)
-    data_t.insert(9, 're', 0)
-
-    for h in hosts:
-        for r in rngs:
-            sel = (all_data_t['host'] == h) & (all_data_t['range'] == r) & (
-                all_data_t['step'] == REF_STEP) & (all_data_t['method'] == REF_METHOD)
-            prob_s = all_data_t[sel]['prob'].sum()
-            prob_c = all_data_t[sel]['prob'].count()
-            
-            base_prob = prob_s/prob_c
-            for m in methods:
-                for s in steps: 
-                    sel = (all_data_t['host'] == h) & (all_data_t['range'] == r) & (all_data_t['method'] == m) & (all_data_t['step'] == s)
-                    prob_st = all_data_t[sel]['prob'].sum()
-                    prob_ct = all_data_t[sel]['prob'].count()
-                    prob = prob_st/prob_ct 
-                    sel_t = (data_t['host'] == h) & (data_t['range'] == r) & (data_t['method'] == m) & (data_t['step'] == s)
-                    data_t.loc[sel_t, 'prob'] = prob
-                    data_t.loc[sel_t, 're'] = (prob - base_prob) / base_prob
-    
-    # filling the 'fre' column
-    
-    data_t.insert(10, 'fre', 0)
-    for r in rngs:
-        for s in steps:
-            for m in methods:
-                sel = (data_t['range'] == r) & (
-                    data_t['step'] == s) & (data_t['method'] == m)
-                ts = data_t[sel]['re'].sum()
-                tc = data_t[sel]['re'].count()
-                mid = ts / tc
-                data_t.loc[sel, 'fre'] =  (data_t[sel]['re'] - mid) / mid
-
-    # filling the 'sp' column
-
-    data_t.insert(11, 'sp', 0)
-    for r in rngs:
-        for s in steps:
-            for m in methods:
-                sel = (data_t['range'] == r) & (
-                    data_t['step'] == s) & (data_t['method'] == m)
-                ts = data_t[sel]['prob'].sum()
-                tc = data_t[sel]['prob'].count()
-                data_t.loc[sel, 'sp'] = ts / tc
-
-
-    print(data_t)
-    data_t = data_t.sort_values(by=["method", "step", "range"])
-    header = ["method", "step", "range", "host", 'mean','std']
-    data_t.to_csv('techinfo.csv', columns = header)
-
-
-
-
-    # out = Path('data')
-    # for h in hosts:
-    #     for r in rngs:
-    #         for m in methods:
-    #             with open((out / f'{h}_{r}_{m}.dat'), 'w') as f:
-    #                 for s in steps:
-                    
-    #                     sel = (data_t['host'] == h) & (data_t['range'] == r) & (data_t['method'] == m) & (data_t['step'] == s)
-    #                     mid = data_t[sel]['mean'].to_numpy()[0]
-                        
-    #                     for run in runs:
-    #                         tsel = (all_data_t['host'] == h) & (all_data_t['range'] == r) & (all_data_t['method'] == m) & (all_data_t['step'] == s) & (all_data_t['run'] == run)
-    #                         time = all_data_t[tsel]['time'].to_numpy()[0]
-    #                         f.write(f'{s}\t{mid}\t{time}\t{(time-mid)/mid}\n')
+        self.data_rt.insert(0, 'fre', 0)
+        for r in self.rngs:
+            for s in self.steps:
+                for m in self.methods:
+                    sel = (self.data_rt['range'] == r) & (
+                        self.data_rt['step'] == s) & (self.data_rt['method'] == m)
+                    mid = self.data_rt[sel]['re'].to_numpy().mean()
+                    self.data_rt.loc[sel, 'fre'] = (self.data_rt[sel]['re'] - mid) / mid
+        
+        print(self.data_rt)
+        return self.data_rt
 
     
-    return data_t
 
 
-def gen_gp_dat(OUT_DIR, types, methods=None, hosts=None, rngs=None):
-    """Generate data files from results of program run.
+    def sp_infm(self): # also survival probability
+        self.data_rt.insert(0, 'sp', 0)
+        for r in self.rngs:
+            for s in self.steps:
+                for m in self.methods:
+                    sel = (self.data_rt['range'] == r) & (
+                        self.data_rt['step'] == s) & (self.data_rt['method'] == m)
+                    self.data_rt.loc[sel, 'sp'] = self.data_rt[sel]['prob'].to_numpy().mean()
 
-    Data files are generated for each computed interval. They names are prefixed
-    by graph type followed by range interval.
+        print(self.data_rt)
+        return self.data_rt
 
-    Due to fact we don't know exact solution for evolution equation (and that
-    would be intrinsically wrong as we could change profile function at our
-    will) we use numeric methods to calculate the solution.
+    def all_infm(self):
+        data = self.time_infm()
+        data = self.prob_infm()
+        data = self.sp_infm()
 
-    There is good method named Magnus expansion (after Wilfred Magnus work [1])
-    in different form (related to each other as much as Runge-Kutta methods).
+        return data
 
-    We suppose that more "sophisticated" method with smallest step should give
-    more correct result (more significant digits).
-
-    The first graph type (gt == 0) is aimed at that: to compare calculation made
-    by different methods by means of relative error. The error itself is
-    computed on base of value for given method (REF_METHOD) and step (REF_STEP).
-
-    Next graph type (gt == 1) is about absolute execution time. It depends very
-    strongly on host where data were calculated.
-
-    That's why we also generate data for thrid graph type (gt == 2) which writes
-    relative execution time for every methods using as base most time consuming
-    method (it is selected from the input data) on an intelval.
+def gen_gp_dat(OUT_DIR, DATA_DIR, types, methods=None, steps=None, hosts=None, rngs=None, reread=False):
+    """
+    Generate data files from results of program run.
 
     """
-    if os.path.exists(Path(OUT_DIR) / 'collected_data.csv'):
+    if os.path.exists(Path(OUT_DIR) / 'collected_data.csv') and not reread:
         with open(Path(OUT_DIR) / 'collected_data.csv', 'r') as d:
             data = pd.read_csv(d)
-    else: 
-        data = required_data("data")
+    else:
+        data = collect_all_data(DATA_DIR)
         with open(Path(OUT_DIR) / 'collected_data.csv', 'w') as d:
             d.write(data.to_csv())
 
-    
-    steps = pd.unique(data['step'])
+    D = DataAnalysis(data)
+    data = D.all_infm()
+
+
+    if steps is None:
+        steps = pd.unique(data['step'])
     if rngs is None:
         rngs = pd.unique(data['range'])
     if hosts is None:
         hosts = pd.unique(data['host'])
     if methods is None:
         methods = pd.unique(data['method'])
-    
-    
+
     ret_data = pd.DataFrame()
     ret_data.insert(0, 'step', 0)
     ret_data.insert(1, 'range', 0)
-    
-    for r in rngs:
-        ret_data = ret_data.append(pd.DataFrame({'step': steps, 'range': r}), ignore_index=True)
-    
 
+    for r in rngs:
+        ret_data = ret_data.append(pd.DataFrame(
+            {'step': steps, 'range': r}), ignore_index=True)
 
     index = 2
     for h in hosts:
         for m in methods:
             for t in types:
                 cname = f'{m}_{h}_{t}'
-                ret_data.insert(index, cname, 0 )
+                ret_data.insert(index, cname, 0)
                 index += 1
                 for r in rngs:
                     for s in steps:
-                        sel1 = (data['host'] == h) & (data['method'] == m) &  (data['range'] == r) &  (data['step'] == s)
-                        sel2 = (ret_data['range'] == r) & (ret_data['step'] == s)
-                        ret_data.loc[sel2, cname] = data[sel1][t].to_numpy()[0] # ???????????????????????
+                        sel1 = (data['host'] == h) & (data['method'] == m) & (
+                            data['range'] == r) & (data['step'] == s)
+                        sel2 = (ret_data['range'] == r) & (
+                            ret_data['step'] == s)
+                        ret_data.loc[sel2, cname] = data[sel1][t].to_numpy()[
+                            0]  # ???????????????????????
 
     return ret_data
-
-
