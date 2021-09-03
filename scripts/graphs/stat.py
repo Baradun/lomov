@@ -5,6 +5,7 @@ Collect data from dat files from 'methods.py' run and output data files for
 plotting by gnuplot. Also do some statistical calculations on data.
 """
 
+from datetime import date
 import os
 #from scripts.all_stat import DATA_DIR
 import sys
@@ -137,9 +138,6 @@ def collect_all_data(DATA_DIR):
     return data
 
 
-
-
-
 class DataAnalysis():
     def __init__(self, data):
         self.data = data
@@ -160,40 +158,44 @@ class DataAnalysis():
             for r in self.rngs:
                 for m in self.methods:
                     for s in self.steps:
-                        self.data_rt.loc[len(self.data_rt.index)] = [h, r, s, m]
+                        self.data_rt.loc[len(self.data_rt.index)] = [
+                            h, r, s, m]
 
-    def time_infm(self):
+    def time_inf(self):
         self.data_rt.insert(0, 'mean_time', 0)
         self.data_rt.insert(0, 'std_time', 0)
-        
+
         for h in self.hosts:
             for r in self.rngs:
                 for m in self.methods:
                     for s in self.steps:
 
                         sel = (self.data['host'] == h) & (
-                               self.data['range'] == r) & (
-                               self.data['method'] == m) & (
-                               self.data['step'] == s)
+                            self.data['range'] == r) & (
+                            self.data['method'] == m) & (
+                            self.data['step'] == s)
                         sel_rt = (self.data_rt['host'] == h) & (
-                                  self.data_rt['range'] == r) & (
-                                  self.data_rt['method'] == m) & (
-                                  self.data_rt['step'] == s)
+                            self.data_rt['range'] == r) & (
+                            self.data_rt['method'] == m) & (
+                            self.data_rt['step'] == s)
 
                         mt = self.data[sel]['time'].to_numpy()
 
-                        self.data_rt.loc[sel_rt, 'mean_time'] = float(mt.mean())
+                        self.data_rt.loc[sel_rt,
+                                         'mean_time'] = float(mt.mean())
                         self.data_rt.loc[sel_rt, 'std_time'] = float(mt.std())
 
         # filling the 'rt' column
         self.data_rt.insert(0, 'rt', 0)
         self.data_rt.insert(0, 'rstd_time', 0)
-        
+
         for h in self.hosts:
             for r in self.rngs:
-                sel = (self.data_rt['host'] == h) & (self.data_rt['range'] == r)
+                sel = (self.data_rt['host'] == h) & (
+                    self.data_rt['range'] == r)
                 max_time = self.data_rt[sel]['mean_time'].max()
-                self.data_rt.loc[sel, 'rt'] = self.data_rt[sel]['mean_time'] / max_time
+                self.data_rt.loc[sel,
+                                 'rt'] = self.data_rt[sel]['mean_time'] / max_time
 
         # filling the 'frt' column
         self.data_rt.insert(0, 'frt', 0)
@@ -201,17 +203,22 @@ class DataAnalysis():
             for s in self.steps:
                 for m in self.methods:
                     sel = (self.data_rt['range'] == r) & (
-                           self.data_rt['step'] == s) & (
-                           self.data_rt['method'] == m)
+                        self.data_rt['step'] == s) & (
+                        self.data_rt['method'] == m)
 
                     mid = self.data_rt[sel]['rt'].to_numpy().mean()
-                    self.data_rt.loc[sel, 'frt'] = (self.data_rt[sel]['rt'] - mid) / mid
-        
-        print(self.data_rt)
-        return self.data_rt
-    
+                    self.data_rt.loc[sel, 'frt'] = (
+                        self.data_rt[sel]['rt'] - mid) / mid
 
-    def prob_infm(self):
+        
+        return self.data_rt
+
+
+    def get_time_inf(self):
+        return self.time_inf()
+
+
+    def prob_inf(self):
         # filling the 're' column
         self.data_rt.insert(0, 'prob', 0)
         self.data_rt.insert(0, 're', 0)
@@ -230,7 +237,8 @@ class DataAnalysis():
                         sel_t = (self.data_rt['host'] == h) & (self.data_rt['range'] == r) & (
                             self.data_rt['method'] == m) & (self.data_rt['step'] == s)
                         self.data_rt.loc[sel_t, 'prob'] = prob
-                        self.data_rt.loc[sel_t, 're'] = (prob - base_prob) / base_prob
+                        self.data_rt.loc[sel_t, 're'] = (
+                            prob - base_prob) / base_prob
 
         # filling the 'fre' column
 
@@ -241,58 +249,59 @@ class DataAnalysis():
                     sel = (self.data_rt['range'] == r) & (
                         self.data_rt['step'] == s) & (self.data_rt['method'] == m)
                     mid = self.data_rt[sel]['re'].to_numpy().mean()
-                    self.data_rt.loc[sel, 'fre'] = (self.data_rt[sel]['re'] - mid) / mid
-        
+                    self.data_rt.loc[sel, 'fre'] = (
+                        self.data_rt[sel]['re'] - mid) / mid
+
         print(self.data_rt)
         return self.data_rt
 
-    
+
+    def get_prob_inf(self):
+        return self.prob_inf()
 
 
-    def sp_infm(self): # also survival probability
+    def sp_inf(self):  # also survival probability
         self.data_rt.insert(0, 'sp', 0)
         for r in self.rngs:
             for s in self.steps:
                 for m in self.methods:
                     sel = (self.data_rt['range'] == r) & (
                         self.data_rt['step'] == s) & (self.data_rt['method'] == m)
-                    self.data_rt.loc[sel, 'sp'] = self.data_rt[sel]['prob'].to_numpy().mean()
+                    self.data_rt.loc[sel, 'sp'] = self.data_rt[sel]['prob'].to_numpy(
+                    ).mean()
 
         print(self.data_rt)
         return self.data_rt
 
-    def all_infm(self):
-        data = self.time_infm()
-        data = self.prob_infm()
-        data = self.sp_infm()
 
-        return data
+    def get_sp_inf(self):
+        return self.sp_inf()
 
-def gen_gp_dat(OUT_DIR, DATA_DIR, types, methods=None, steps=None, hosts=None, rngs=None, reread=False):
+    def get_all_inf(self):
+        self.get_time_infm()
+        self.get_prob_infm()
+        self.get_sp_infm()
+
+        return self.data_rt
+
+
+def gen_gp_dat(all_data, types, methods=None, steps=None, hosts=None, rngs=None, reread=False):
     """
     Generate data files from results of program run.
 
     """
-    if os.path.exists(Path(OUT_DIR) / 'collected_data.csv') and not reread:
-        with open(Path(OUT_DIR) / 'collected_data.csv', 'r') as d:
-            data = pd.read_csv(d)
-    else:
-        data = collect_all_data(DATA_DIR)
-        with open(Path(OUT_DIR) / 'collected_data.csv', 'w') as d:
-            d.write(data.to_csv())
 
-    D = DataAnalysis(data)
-    data = D.all_infm()
-
+    D = DataAnalysis(all_data)
+    D.all_infm()
 
     if steps is None:
-        steps = pd.unique(data['step'])
+        steps = pd.unique(D.data_rt['step'])
     if rngs is None:
-        rngs = pd.unique(data['range'])
+        rngs = pd.unique(D.data_rt['range'])
     if hosts is None:
-        hosts = pd.unique(data['host'])
+        hosts = pd.unique(D.data_rt['host'])
     if methods is None:
-        methods = pd.unique(data['method'])
+        methods = pd.unique(D.data_rt['method'])
 
     ret_data = pd.DataFrame()
     ret_data.insert(0, 'step', 0)
@@ -311,11 +320,30 @@ def gen_gp_dat(OUT_DIR, DATA_DIR, types, methods=None, steps=None, hosts=None, r
                 index += 1
                 for r in rngs:
                     for s in steps:
-                        sel1 = (data['host'] == h) & (data['method'] == m) & (
-                            data['range'] == r) & (data['step'] == s)
-                        sel2 = (ret_data['range'] == r) & (
+                        sel_t = (D.data_rt['host'] == h) & (D.data_rt['method'] == m) & (
+                            D.data_rt['range'] == r) & (D.data_rt['step'] == s)
+                        sel_ret = (ret_data['range'] == r) & (
                             ret_data['step'] == s)
-                        ret_data.loc[sel2, cname] = data[sel1][t].to_numpy()[
+                        ret_data.loc[sel_ret, cname] = D.data_rt[sel_t][t].to_numpy()[
                             0]  # ???????????????????????
 
     return ret_data
+
+
+def gen_dat(OUT_DIR, DATA_DIR, types, methods=None, steps=None, hosts=None, rngs=None, reread=False):
+    if os.path.exists(Path(OUT_DIR) / 'collected_data.csv') and not reread:
+        with open(Path(OUT_DIR) / 'collected_data.csv', 'r') as d:
+            all_data = pd.read_csv(d)
+    else:
+        all_data = collect_all_data(DATA_DIR)
+        with open(Path(OUT_DIR) / 'collected_data.csv', 'w') as d:
+            d.write(all_data.to_csv())
+
+    return gen_gp_dat(
+        all_data,
+        types,
+        methods=methods,
+        steps=steps,
+        hosts=hosts,
+        rngs=rngs,
+        reread=reread)

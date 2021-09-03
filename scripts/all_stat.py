@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
     methods = ["CF4"]
     host = ['host#b9ec88ad']
-    data_to_graf = gs.gen_gp_dat(
+    data_to_graf = gs.gen_dat(
         OUT_DIR, DATA_DIR, ['frt',], hosts=host, rngs=['(0.1,0.3)'])
     print(data_to_graf)
 
