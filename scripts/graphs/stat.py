@@ -350,7 +350,7 @@ def gen_gp_dat(all_data, types, methods=None, steps=None, hosts=None, rngs=None,
     return ret_data
 
 
-def gen_dat(OUT_DIR, DATA_DIR, types, methods=None, steps=None, hosts=None, rngs=None, reread=False):
+def get_dat(OUT_DIR, DATA_DIR, types, methods=None, steps=None, hosts=None, rngs=None, reread=False):
     if os.path.exists(Path(OUT_DIR) / 'collected_data.csv') and not reread:
         with open(Path(OUT_DIR) / 'collected_data.csv', 'r') as d:
             all_data = pd.read_csv(d)
@@ -359,12 +359,4 @@ def gen_dat(OUT_DIR, DATA_DIR, types, methods=None, steps=None, hosts=None, rngs
         with open(Path(OUT_DIR) / 'collected_data.csv', 'w') as d:
             d.write(all_data.to_csv())
 
-    ret_data = gen_gp_dat(
-        all_data,
-        types,
-        methods=methods,
-        steps=steps,
-        hosts=hosts,
-        rngs=rngs,
-        reread=reread)
-    return ret_data
+    return all_data
