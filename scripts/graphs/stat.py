@@ -146,6 +146,10 @@ class DataAnalysis():
         self.hosts = pd.unique(data['host'])
         self.steps = pd.unique(data['step'])
         self.methods = pd.unique(data['method'])
+        
+        self.getTimeInf = False
+        self.getProbInf = False
+        self.getSPInf = False
 
         self.data_rt = pd.DataFrame({
             'host': [],
@@ -210,12 +214,17 @@ class DataAnalysis():
                     self.data_rt.loc[sel, 'frt'] = (
                         self.data_rt[sel]['rt'] - mid) / mid
 
-        
+        print(self.data_rt)
         return self.data_rt
 
 
     def get_time_inf(self):
-        return self.time_inf()
+        if self.getTimeInf:
+            return self.data_rt
+        else:
+            self.getTimeInf = True
+            ret_data = self.time_inf()
+            return ret_data
 
 
     def prob_inf(self):
@@ -257,7 +266,12 @@ class DataAnalysis():
 
 
     def get_prob_inf(self):
-        return self.prob_inf()
+        if self.getProbInf:
+            return self.data_rt
+        else:
+            self.getProbInf = True
+            ret_data = self.prob_inf()
+            return ret_data
 
 
     def sp_inf(self):  # also survival probability
@@ -275,12 +289,18 @@ class DataAnalysis():
 
 
     def get_sp_inf(self):
-        return self.sp_inf()
+        if self.getSPInf:
+            return self.data_rt
+        else:
+            self.getSPInf = True
+            ret_data = self.sp_inf()
+            return ret_data
+
 
     def get_all_inf(self):
-        self.get_time_infm()
-        self.get_prob_infm()
-        self.get_sp_infm()
+        self.get_time_inf()
+        self.get_prob_inf()
+        self.get_sp_inf()
 
         return self.data_rt
 
@@ -292,7 +312,7 @@ def gen_gp_dat(all_data, types, methods=None, steps=None, hosts=None, rngs=None,
     """
 
     D = DataAnalysis(all_data)
-    D.all_infm()
+    D.get_all_inf()
 
     if steps is None:
         steps = pd.unique(D.data_rt['step'])
@@ -339,7 +359,7 @@ def gen_dat(OUT_DIR, DATA_DIR, types, methods=None, steps=None, hosts=None, rngs
         with open(Path(OUT_DIR) / 'collected_data.csv', 'w') as d:
             d.write(all_data.to_csv())
 
-    return gen_gp_dat(
+    ret_data = gen_gp_dat(
         all_data,
         types,
         methods=methods,
@@ -347,3 +367,4 @@ def gen_dat(OUT_DIR, DATA_DIR, types, methods=None, steps=None, hosts=None, rngs
         hosts=hosts,
         rngs=rngs,
         reread=reread)
+    return ret_data
