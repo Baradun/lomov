@@ -138,15 +138,19 @@ def collect_all_data(DATA_DIR):
     return data
 
 
-class DataAnalysis():
-    def __init__(self, data):
-        self.data = data
-        self.runs = pd.unique(data['run'])
-        self.rngs = pd.unique(data['range'])
-        self.hosts = pd.unique(data['host'])
-        self.steps = pd.unique(data['step'])
-        self.methods = pd.unique(data['method'])
-        
+class DataRefine():
+    def __init__(self, DATA_DIR, OUT_DIR, data=None):
+        if data is None:
+            self.data = self.get_data(DATA_DIR, OUT_DIR, reread=True)
+        else:
+            self.data = data
+
+        self.runs = pd.unique(self.data['run'])
+        self.rngs = pd.unique(self.data['range'])
+        self.hosts = pd.unique(self.data['host'])
+        self.steps = pd.unique(self.data['step'])
+        self.methods = pd.unique(self.data['method'])
+
         self.getTimeInf = False
         self.getProbInf = False
         self.getSPInf = False
@@ -217,7 +221,6 @@ class DataAnalysis():
         print(self.data_rt)
         return self.data_rt
 
-
     def get_time_inf(self):
         if self.getTimeInf:
             return self.data_rt
@@ -225,7 +228,6 @@ class DataAnalysis():
             self.getTimeInf = True
             ret_data = self.time_inf()
             return ret_data
-
 
     def prob_inf(self):
         # filling the 're' column
@@ -264,7 +266,6 @@ class DataAnalysis():
         print(self.data_rt)
         return self.data_rt
 
-
     def get_prob_inf(self):
         if self.getProbInf:
             return self.data_rt
@@ -272,7 +273,6 @@ class DataAnalysis():
             self.getProbInf = True
             ret_data = self.prob_inf()
             return ret_data
-
 
     def sp_inf(self):  # also survival probability
         self.data_rt.insert(0, 'sp', 0)
@@ -287,7 +287,6 @@ class DataAnalysis():
         print(self.data_rt)
         return self.data_rt
 
-
     def get_sp_inf(self):
         if self.getSPInf:
             return self.data_rt
@@ -296,7 +295,6 @@ class DataAnalysis():
             ret_data = self.sp_inf()
             return ret_data
 
-
     def get_all_inf(self):
         self.get_time_inf()
         self.get_prob_inf()
@@ -304,14 +302,25 @@ class DataAnalysis():
 
         return self.data_rt
 
+    @staticmethod
+    def get_data(DATA_DIR, OUT_DIR, reread=False):
+        if os.path.exists(Path(OUT_DIR) / 'collected_data.csv') and not reread:
+            with open(Path(OUT_DIR) / 'collected_data.csv', 'r') as d:
+                all_data = pd.read_csv(d)
+        else:
+            all_data = collect_all_data(DATA_DIR)
+            with open(Path(OUT_DIR) / 'collected_data.csv', 'w') as d:
+                d.write(all_data.to_csv())
+        return all_data
 
-def gen_gp_dat(all_data, types, methods=None, steps=None, hosts=None, rngs=None, reread=False):
+
+def gen_graf(DATA_DIR, OUT_DIR, types, methods=None, steps=None, hosts=None, rngs=None, reread=False):
     """
     Generate data files from results of program run.
 
     """
 
-    D = DataAnalysis(all_data)
+    D = DataRefine(DATA_DIR, OUT_DIR)
     D.get_all_inf()
 
     if steps is None:
@@ -348,15 +357,3 @@ def gen_gp_dat(all_data, types, methods=None, steps=None, hosts=None, rngs=None,
                             0]  # ???????????????????????
 
     return ret_data
-
-
-def get_dat(OUT_DIR, DATA_DIR, types, methods=None, steps=None, hosts=None, rngs=None, reread=False):
-    if os.path.exists(Path(OUT_DIR) / 'collected_data.csv') and not reread:
-        with open(Path(OUT_DIR) / 'collected_data.csv', 'r') as d:
-            all_data = pd.read_csv(d)
-    else:
-        all_data = collect_all_data(DATA_DIR)
-        with open(Path(OUT_DIR) / 'collected_data.csv', 'w') as d:
-            d.write(all_data.to_csv())
-
-    return all_data

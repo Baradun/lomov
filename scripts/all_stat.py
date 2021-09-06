@@ -24,8 +24,9 @@ if __name__ == '__main__':
 
     methods = ["CF4"]
     host = ['host#b9ec88ad']
-    data = gs.gen_dat(OUT_DIR, DATA_DIR)
-    data_to_graf = gs.gen_dat(data, ['frt', ], hosts=host, rngs=['(0.1,0.3)'])
+
+    data_to_graf = gs.gen_graf(DATA_DIR, OUT_DIR, ['frt', ], hosts=host, rngs=[
+                               '(0.1,0.3)'], reread=True)
     print(data_to_graf)
 
     data_t = data_to_graf.sort_values(by='step')
@@ -34,7 +35,7 @@ if __name__ == '__main__':
     for i in data_to_graf.columns.values.tolist():
         if i.find('host') >= 0:
             fm = next(m)
-            #plt.plot(data_t['step'], np.abs(data_t[i]), f'{fm}-', label=str(i))
+            # plt.plot(data_t['step'], np.abs(data_t[i]), f'{fm}-', label=str(i))
 
     tag = methods[0]
     # plt.title(tag)
