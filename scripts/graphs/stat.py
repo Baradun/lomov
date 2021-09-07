@@ -13,56 +13,56 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from pandas.core.frame import DataFrame
+from pandas.core.frame import DataFrame ### ??? below we use pd.DataFrame...
 
 REF_METHOD = "M6"
 REF_STEP = 1e-10
 METHODS = ["M2", "M4", "M6", "CF4", "CF4:3"]
 
 
-def info(content):
-    """Extract and return a list of necessary parameters from a content.
-    """
+#  def info(content):
+#      """Extract and return a list of necessary parameters from a content.
+#      """
 
-    cntn = content.split()
-    start = float(cntn[cntn.index('start') + 2])
-    end = float(cntn[cntn.index('end') + 2])
-    step = float(cntn[cntn.index('step') + 2])
-    time = float(cntn[cntn.index('time') + 2])
-    P = float(cntn[cntn.index('P') + 2])
+#      cntn = content.split()
+#      start = float(cntn[cntn.index('start') + 2])
+#      end = float(cntn[cntn.index('end') + 2])
+#      step = float(cntn[cntn.index('step') + 2])
+#      time = float(cntn[cntn.index('time') + 2])
+#      P = float(cntn[cntn.index('P') + 2])
 
-    return start, end, step, time, P
+#      return start, end, step, time, P
 
 
-def collect_data(DATA_DIR):
-    """Get data from files in data directory.
+#  def collect_data(DATA_DIR):
+#      """Get data from files in data directory.
 
-    Also do some statistical calculations.
-    """
-    r_data = []
-    for f in Path(DATA_DIR).glob('*.dat'):
-        with open(f, 'r') as fil:
-            tf = str(f)
-            run = tf[tf.rindex('_')+2:tf.find('.dat')]
-            method = tf[tf.rindex('/')+1:tf.index('_')]
+#      Also do some statistical calculations.
+#      """
+#      r_data = []
+#      for f in Path(DATA_DIR).glob('*.dat'):
+#          with open(f, 'r') as fil:
+#              tf = str(f)
+#              run = tf[tf.rindex('_')+2:tf.find('.dat')]
+#              method = tf[tf.rindex('/')+1:tf.index('_')]
 
-            data = fil.read()
-            start, end, step, time, P = info(data)
-            rng = f"({start},{end})"
-            r_data.append(
-                {
-                    "range": rng,
-                    "start": start,
-                    "end": end,
-                    'run': run,
-                    "method": method,
-                    "step": step,
-                    "prob": P,  # prob
-                    "time": time
-                }
-            )
+#              data = fil.read()
+#              start, end, step, time, P = info(data)
+#              rng = f"({start},{end})"
+#              r_data.append(
+#                  {
+#                      "range": rng,
+#                      "start": start,
+#                      "end": end,
+#                      'run': run,
+#                      "method": method,
+#                      "step": step,
+#                      "prob": P,  # prob
+#                      "time": time
+#                  }
+#              )
 
-    return r_data
+#      return r_data
 
     # data_t = {k: [] for k in METHODS}
     # for m in METHODS:
@@ -124,36 +124,103 @@ def collect_data(DATA_DIR):
     # return data_c
 
 
-def collect_all_data(DATA_DIR):
-    data = pd.DataFrame()
+#  def collect_all_data(DATA_DIR):
+#      data = pd.DataFrame()
 
-    for i in os.listdir(DATA_DIR):
-        if i.startswith('host'):
-            data_t = pd.DataFrame(collect_data(
-                Path(DATA_DIR) / str(i) / 'data'))
-            data_t['host'] = i
-            data = data.append(data_t, ignore_index=True)
+#      for i in os.listdir(DATA_DIR):
+#          if i.startswith('host'):
+#              data_t = pd.DataFrame(collect_data(
+#                  Path(DATA_DIR) / str(i) / 'data'))
+#              data_t['host'] = i
+#              data = data.append(data_t, ignore_index=True)
 
-    print(data)
-    return data
+#      print(data)
+#      return data
 
 
 class DataRefine():
-    def __init__(self, DATA_DIR, OUT_DIR, data=None):
-        if data is None:
-            self.data = self.get_data(DATA_DIR, OUT_DIR, reread=True)
-        else:
-            self.data = data
+    def __init__(self, storeDir, dataDir):
+        """
+        Populate internal data structure with data located in storeDir/dataDir.
+        """
 
+        ### Internal methods.
+
+        # Truely "internal" method.
+        def info(content):
+            """
+            Extract and return a list of necessary parameters from a content.
+            """
+
+            cntn = content.split()
+            start = float(cntn[cntn.index('start') + 2])
+            end = float(cntn[cntn.index('end') + 2])
+            step = float(cntn[cntn.index('step') + 2])
+            time = float(cntn[cntn.index('time') + 2])
+            P = float(cntn[cntn.index('P') + 2])
+
+            return start, end, step, time, P
+
+        # Truely "internal" method.
+        def collect_data(d):
+            """
+            Get data from .dat files in a directory.
+            """
+
+            r_data = []
+            for f in Path(d).glob('*.dat'):
+                with open(f, 'r') as fil:
+                    tf = str(f)
+                    run = tf[tf.rindex('_')+2:tf.find('.dat')]
+                    method = tf[tf.rindex('/')+1:tf.index('_')]
+
+                    data = fil.read()
+                    start, end, step, time, P = info(data)
+                    rng = f"({start},{end})"
+                    r_data.append(
+                        {
+                            "range": rng,
+                            "start": start,
+                            "end": end,
+                            'run': run,
+                            "method": method,
+                            "step": step,
+                            "prob": P,  # prob
+                            "time": time
+                        }
+                    )
+
+            return r_data
+
+        ### Initialization.
+        self.data = pd.DataFrame()
+
+        if os.path.exists(Path(storeDir) / 'collected_data.csv'):
+            with open(Path(storeDir) / 'collected_data.csv', 'r') as d:
+                self.data = pd.read_csv(d)
+        else:
+            for d in os.listdir(dataDir):
+                if d.startswith('host'):
+                    data_t = pd.DataFrame(collect_data(
+                        Path(dataDir) / str(d) / 'data'))
+                    data_t['host'] = d
+                    self.data = self.data.append(data_t, ignore_index=True)
+
+            with open(Path(storeDir) / 'collected_data.csv', 'w') as d:
+                d.write(self.data.to_csv())
+
+        """
+        Postprocess obtained data to work with them further.
+        """
         self.runs = pd.unique(self.data['run'])
         self.rngs = pd.unique(self.data['range'])
         self.hosts = pd.unique(self.data['host'])
         self.steps = pd.unique(self.data['step'])
         self.methods = pd.unique(self.data['method'])
 
-        self.getTimeInf = False
-        self.getProbInf = False
-        self.getSPInf = False
+        self.__timeInfo = False
+        self.__probInfo = False
+        self.__spInfo = False
 
         self.data_rt = pd.DataFrame({
             'host': [],
@@ -169,7 +236,8 @@ class DataRefine():
                         self.data_rt.loc[len(self.data_rt.index)] = [
                             h, r, s, m]
 
-    def time_inf(self):
+    # internal interface.
+    def __time_info(self):
         self.data_rt.insert(0, 'mean_time', 0)
         self.data_rt.insert(0, 'std_time', 0)
 
@@ -219,17 +287,17 @@ class DataRefine():
                         self.data_rt[sel]['rt'] - mid) / mid
 
         print(self.data_rt)
+
+    # public interface
+    def time_info(self):
+        if not self.__timeInfo:
+            self.__timeInfo = True
+            self.__time_info()
+
         return self.data_rt
 
-    def get_time_inf(self):
-        if self.getTimeInf:
-            return self.data_rt
-        else:
-            self.getTimeInf = True
-            ret_data = self.time_inf()
-            return ret_data
-
-    def prob_inf(self):
+    # internal interface
+    def __prob_info(self):
         # filling the 're' column
         self.data_rt.insert(0, 'prob', 0)
         self.data_rt.insert(0, 're', 0)
@@ -264,17 +332,17 @@ class DataRefine():
                         self.data_rt[sel]['re'] - mid) / mid
 
         print(self.data_rt)
+
+    # public interface
+    def prob_info(self):
+        if not self.__probInfo:
+            self.__probInfo = True
+            self.__prob_info()
+
         return self.data_rt
 
-    def get_prob_inf(self):
-        if self.getProbInf:
-            return self.data_rt
-        else:
-            self.getProbInf = True
-            ret_data = self.prob_inf()
-            return ret_data
-
-    def sp_inf(self):  # also survival probability
+    # internal interface
+    def __sp_info(self):  # also survival probability
         self.data_rt.insert(0, 'sp', 0)
         for r in self.rngs:
             for s in self.steps:
@@ -285,52 +353,40 @@ class DataRefine():
                     ).mean()
 
         print(self.data_rt)
-        return self.data_rt
 
-    def get_sp_inf(self):
-        if self.getSPInf:
-            return self.data_rt
-        else:
-            self.getSPInf = True
-            ret_data = self.sp_inf()
-            return ret_data
-
-    def get_all_inf(self):
-        self.get_time_inf()
-        self.get_prob_inf()
-        self.get_sp_inf()
+    # public interface
+    def sp_info(self):
+        if not self.__spInfo:
+            self.__spInfo = True
+            self.__sp_info()
 
         return self.data_rt
 
-    @staticmethod
-    def get_data(DATA_DIR, OUT_DIR, reread=False):
-        if os.path.exists(Path(OUT_DIR) / 'collected_data.csv') and not reread:
-            with open(Path(OUT_DIR) / 'collected_data.csv', 'r') as d:
-                all_data = pd.read_csv(d)
-        else:
-            all_data = collect_all_data(DATA_DIR)
-            with open(Path(OUT_DIR) / 'collected_data.csv', 'w') as d:
-                d.write(all_data.to_csv())
-        return all_data
+    def all_info(self):
+        # rely on side effect of calling methods.
+        self.time_info()
+        self.prob_info()
+        self.sp_info()
+
+        return self.data_rt
 
 
-def gen_graf(DATA_DIR, OUT_DIR, types, methods=None, steps=None, hosts=None, rngs=None, reread=False):
+def gen_graf(data, types, methods=None, steps=None, hosts=None, rngs=None):
     """
     Generate data files from results of program run.
 
     """
 
-    D = DataRefine(DATA_DIR, OUT_DIR)
-    D.get_all_inf()
+    wdat = data.all_info()
 
     if steps is None:
-        steps = pd.unique(D.data_rt['step'])
+        steps = pd.unique(wdat['step'])
     if rngs is None:
-        rngs = pd.unique(D.data_rt['range'])
+        rngs = pd.unique(wdat['range'])
     if hosts is None:
-        hosts = pd.unique(D.data_rt['host'])
+        hosts = pd.unique(wdat['host'])
     if methods is None:
-        methods = pd.unique(D.data_rt['method'])
+        methods = pd.unique(wdat['method'])
 
     ret_data = pd.DataFrame()
     ret_data.insert(0, 'step', 0)
@@ -349,11 +405,12 @@ def gen_graf(DATA_DIR, OUT_DIR, types, methods=None, steps=None, hosts=None, rng
                 index += 1
                 for r in rngs:
                     for s in steps:
-                        sel_t = (D.data_rt['host'] == h) & (D.data_rt['method'] == m) & (
-                            D.data_rt['range'] == r) & (D.data_rt['step'] == s)
-                        sel_ret = (ret_data['range'] == r) & (
-                            ret_data['step'] == s)
-                        ret_data.loc[sel_ret, cname] = D.data_rt[sel_t][t].to_numpy()[
-                            0]  # ???????????????????????
+                        sel_t = (wdat['host'] == h) &
+                                (wdat['method'] == m) &
+                                (wdat['range'] == r) &
+                                (wdat['step'] == s)
+                        sel_ret = (ret_data['range'] == r) &
+                                  (ret_data['step'] == s)
+                        ret_data.loc[sel_ret, cname] = wdat[sel_t][t].to_numpy()[0]  # ???????????????????????
 
     return ret_data

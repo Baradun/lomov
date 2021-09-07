@@ -11,7 +11,7 @@ import pandas as pd
 import graphs.stat as gs
 
 DATA_DIR = os.getenv("METHODS_DATA_DIR", "data")
-OUT_DIR = os.getenv("METHODS_GRAPH_DIR", "all_graphs")
+STORE_DIR = os.getenv("METHODS_GRAPH_DIR", "all_graphs")
 
 
 def mrk():
@@ -25,8 +25,12 @@ if __name__ == '__main__':
     methods = ["CF4"]
     host = ['host#b9ec88ad']
 
-    data_to_graf = gs.gen_graf(DATA_DIR, OUT_DIR, ['frt', ], hosts=host, rngs=[
-                               '(0.1,0.3)'], reread=True)
+    wdata = gs.DataRefine(STORE_DIR, DATA_DIR)
+
+    data_to_graf = gs.gen_graf(wdata, ['frt', ], hosts=host, rngs=['(0.1,0.3)'])
+    # data2 = gs.gen_graf(wdata, ['frt', ], hosts=host, rngs=['(0.1,0.2)'])
+    # data3 = gs.gen_graf(wdata, ['frt', ], hosts=host, rngs=['(0.1,0.15)'])
+    
     print(data_to_graf)
 
     data_t = data_to_graf.sort_values(by='step')
@@ -45,6 +49,6 @@ if __name__ == '__main__':
     # plt.savefig(f'plot_{tag}.pdf')
     # plt.show()
 
-    with open(Path(OUT_DIR) / 'data_to_graf.csv', 'w') as d:
+    with open(Path(STORE_DIR) / 'data_to_graf.csv', 'w') as d:
         d.write(data_to_graf.to_csv())
     #gen_gp_dat(req_data, 0)
