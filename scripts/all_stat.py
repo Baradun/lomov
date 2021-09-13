@@ -4,7 +4,7 @@ import os
 import sys
 from pathlib import Path
 
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     wdata = gs.DataRefine(STORE_DIR, DATA_DIR)
 
-    data_to_graf = gs.gen_graf(wdata, ['frt', ], hosts=host, rngs=['(0.1,0.3)'])
+    data_to_graf = gs.gen_graf(wdata, ['mean_time', ], hosts=host, rngs=['(0.1,0.3)'])
     # data2 = gs.gen_graf(wdata, ['frt', ], hosts=host, rngs=['(0.1,0.2)'])
     # data3 = gs.gen_graf(wdata, ['frt', ], hosts=host, rngs=['(0.1,0.15)'])
     

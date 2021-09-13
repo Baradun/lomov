@@ -310,11 +310,12 @@ class DataRefine():
 
                 for m in self.methods:
                     for s in self.steps:
-                        sel = (self.data_rt['host'] == h) & (self.data['range'] == r) & (
+                        sel = (self.data['host'] == h) & (self.data['range'] == r) & (
                             self.data['method'] == m) & (self.data['step'] == s)
-                        prob = self.data[sel]['prob'].to_numpy().mean()
                         sel_t = (self.data_rt['host'] == h) & (self.data_rt['range'] == r) & (
                             self.data_rt['method'] == m) & (self.data_rt['step'] == s)
+
+                        prob = self.data[sel]['prob'].to_numpy().mean()
                         self.data_rt.loc[sel_t, 'prob'] = prob
                         self.data_rt.loc[sel_t, 're'] = (
                             prob - base_prob) / base_prob
@@ -405,12 +406,12 @@ def gen_graf(data, types, methods=None, steps=None, hosts=None, rngs=None):
                 index += 1
                 for r in rngs:
                     for s in steps:
-                        sel_t = (wdat['host'] == h) &
-                                (wdat['method'] == m) &
-                                (wdat['range'] == r) &
-                                (wdat['step'] == s)
-                        sel_ret = (ret_data['range'] == r) &
-                                  (ret_data['step'] == s)
+                        sel_t = (wdat['host'] == h) & (
+                                wdat['method'] == m) & (
+                                wdat['range'] == r) & (
+                                wdat['step'] == s)
+                        sel_ret = (ret_data['range'] == r) & (
+                                   ret_data['step'] == s)
                         ret_data.loc[sel_ret, cname] = wdat[sel_t][t].to_numpy()[0]  # ???????????????????????
 
     return ret_data
