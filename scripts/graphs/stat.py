@@ -321,12 +321,12 @@ class DataRefine():
         if self.data_base is not None:
             self.data_rt.insert(0, 'base_prob', 0)
             for r in self.rngs:
-                sel = (self.data_base['range'] == r) & (
-                    self.data_base['step'] == REF_STEP) & (self.data_base['method'] == REF_METHOD)
-                base_prob = self.data_base[sel]['prob'].to_numpy().mean()
-
                 for m in self.methods:
                     for s in self.steps:
+                        sel_base = (self.data_base['range'] == r) & (
+                            self.data_base['step'] == s) & (self.data_base['method'] == m)
+                        base_prob = self.data_base[sel_base]['prob'].to_numpy().mean()
+                        
                         sel = (self.data['range'] == r) & (
                             self.data['method'] == m) & (self.data['step'] == s)
                         sel_t = (self.data_rt['range'] == r) & (
