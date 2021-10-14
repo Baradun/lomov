@@ -5,15 +5,12 @@ Collect data from dat files from 'methods.py' run and output data files for
 plotting by gnuplot. Also do some statistical calculations on data.
 """
 
-from datetime import date
 import os
-#from scripts.all_stat import DATA_DIR
-import sys
+from datetime import date
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from pandas.core.frame import DataFrame ### ??? below we use pd.DataFrame...
 
 REF_METHOD = "M6"
 REF_STEP = 1e-10
@@ -64,64 +61,64 @@ METHODS = ["M2", "M4", "M6", "CF4", "CF4:3"]
 
 #      return r_data
 
-    # data_t = {k: [] for k in METHODS}
-    # for m in METHODS:
-    #     tt = dict()
-    #     met = []
-    #     for f in Path(DATA_DIR).glob('*.dat'):
-    #         with open(f, 'r') as fil:
-    #             tf = str(f)
-    #             run = tf[tf.rindex('_')+2:tf.find('.dat')]
+# data_t = {k: [] for k in METHODS}
+# for m in METHODS:
+#     tt = dict()
+#     met = []
+#     for f in Path(DATA_DIR).glob('*.dat'):
+#         with open(f, 'r') as fil:
+#             tf = str(f)
+#             run = tf[tf.rindex('_')+2:tf.find('.dat')]
 
-    #             data = fil.read()
-    #             # Possible issue: if for some reason file exists but doesn't
-    #             # contain necessary information, for example, file was created
-    #             # before data were written and the process was killed, or if
-    #             # file was written by other programs with other parameter
-    #             # listing style.
-    #             start, end, step, time, P = info(data)
-    #             idx = f"{start},{end}_{step}"
+#             data = fil.read()
+#             # Possible issue: if for some reason file exists but doesn't
+#             # contain necessary information, for example, file was created
+#             # before data were written and the process was killed, or if
+#             # file was written by other programs with other parameter
+#             # listing style.
+#             start, end, step, time, P = info(data)
+#             idx = f"{start},{end}_{step}"
 
-    #             if idx not in tt:
-    #                 tt[idx] = [float(time), 1]
-    #                 met.append(
-    #                     {
-    #                         'start': start,
-    #                         'end': end,
-    #                         'run': run,
-    #                         'step': step,
-    #                         'prob': P,
-    #                         'time': 0.0
-    #                     }
-    #                 )
-    #                 continue
-    #             tt[idx][0] = tt[idx][0] + float(time)
-    #             tt[idx][1] = tt[idx][1] + 1
+#             if idx not in tt:
+#                 tt[idx] = [float(time), 1]
+#                 met.append(
+#                     {
+#                         'start': start,
+#                         'end': end,
+#                         'run': run,
+#                         'step': step,
+#                         'prob': P,
+#                         'time': 0.0
+#                     }
+#                 )
+#                 continue
+#             tt[idx][0] = tt[idx][0] + float(time)
+#             tt[idx][1] = tt[idx][1] + 1
 
-    #     print(tt)
-    #     for itm in met:
-    #         idx = f"{itm['start']},{itm['end']}_{itm['step']}"
-    #         itm['time'] = tt[idx][0] / tt[idx][1]
-    #     data_t[m] = met
+#     print(tt)
+#     for itm in met:
+#         idx = f"{itm['start']},{itm['end']}_{itm['step']}"
+#         itm['time'] = tt[idx][0] / tt[idx][1]
+#     data_t[m] = met
 
-    # print(data_t)
-    # data_c = []
-    # for m in METHODS:
-    #     for el in data_t[m]:
-    #         data_c.append(
-    #             {
-    #                 "range": f"({el['start']},{el['end']})",
-    #                 "start": el['start'],
-    #                 "end": el['end'],
-    #                 'run': el['run'],
-    #                 "method": m,
-    #                 "step": el['step'],
-    #                 "prob": el['prob'],
-    #                 "time": el['time']
-    #             }
-    #         )
+# print(data_t)
+# data_c = []
+# for m in METHODS:
+#     for el in data_t[m]:
+#         data_c.append(
+#             {
+#                 "range": f"({el['start']},{el['end']})",
+#                 "start": el['start'],
+#                 "end": el['end'],
+#                 'run': el['run'],
+#                 "method": m,
+#                 "step": el['step'],
+#                 "prob": el['prob'],
+#                 "time": el['time']
+#             }
+#         )
 
-    # return data_c
+# return data_c
 
 
 #  def collect_all_data(DATA_DIR):
@@ -139,12 +136,12 @@ METHODS = ["M2", "M4", "M6", "CF4", "CF4:3"]
 
 
 class DataRefine():
-    def __init__(self, storeDir, dataDir):
+    def __init__(self, storeDir, dataDir, data_base=None):
         """
         Populate internal data structure with data located in storeDir/dataDir.
         """
 
-        ### Internal methods.
+        # Internal methods.
 
         # Truely "internal" method.
         def info(content):
@@ -192,8 +189,9 @@ class DataRefine():
 
             return r_data
 
-        ### Initialization.
+        # Initialization.
         self.data = pd.DataFrame()
+        self.data_base = data_base
 
         if os.path.exists(Path(storeDir) / 'collected_data.csv'):
             with open(Path(storeDir) / 'collected_data.csv', 'r') as d:
@@ -298,39 +296,58 @@ class DataRefine():
 
     # internal interface
     def __prob_info(self):
-        # filling the 're' column
+
+        # filling the 're' column, 6 formula
         self.data_rt.insert(0, 'prob', 0)
         self.data_rt.insert(0, 're', 0)
+        for r in self.rngs:
+            sel = (self.data['range'] == r) & (
+                self.data['step'] == REF_STEP) & (self.data['method'] == REF_METHOD)
+            base_prob = self.data[sel]['prob'].to_numpy().mean()
 
-        for h in self.hosts:
+            for m in self.methods:
+                for s in self.steps:
+                    sel = (self.data['range'] == r) & (
+                        self.data['method'] == m) & (self.data['step'] == s)
+                    sel_t = (self.data_rt['range'] == r) & (
+                        self.data_rt['method'] == m) & (self.data_rt['step'] == s)
+
+                    prob = self.data[sel]['prob'].to_numpy().mean()
+                    self.data_rt.loc[sel_t, 'prob'] = prob
+                    self.data_rt.loc[sel_t, 're'] = (
+                        prob - base_prob) / base_prob
+
+        # 8 formula
+        if self.data_base is not None:
+            self.data_rt.insert(0, 'base_prob', 0)
             for r in self.rngs:
-                sel = (self.data['host'] == h) & (self.data['range'] == r) & (
-                    self.data['step'] == REF_STEP) & (self.data['method'] == REF_METHOD)
-                base_prob = self.data[sel]['prob'].to_numpy().mean()
+                sel = (self.data_base['range'] == r) & (
+                    self.data_base['step'] == REF_STEP) & (self.data_base['method'] == REF_METHOD)
+                base_prob = self.data_base[sel]['prob'].to_numpy().mean()
 
                 for m in self.methods:
                     for s in self.steps:
-                        sel = (self.data['host'] == h) & (self.data['range'] == r) & (
+                        sel = (self.data['range'] == r) & (
                             self.data['method'] == m) & (self.data['step'] == s)
-                        sel_t = (self.data_rt['host'] == h) & (self.data_rt['range'] == r) & (
+                        sel_t = (self.data_rt['range'] == r) & (
                             self.data_rt['method'] == m) & (self.data_rt['step'] == s)
 
                         prob = self.data[sel]['prob'].to_numpy().mean()
-                        self.data_rt.loc[sel_t, 'prob'] = prob
-                        self.data_rt.loc[sel_t, 're'] = (
+                        # self.data_rt.loc[sel_t, 'prob'] = prob
+                        self.data_rt.loc[sel_t, 'base_prob'] = (
                             prob - base_prob) / base_prob
 
         # filling the 'fre' column
 
-        self.data_rt.insert(0, 'fre', 0)
-        for r in self.rngs:
-            for s in self.steps:
-                for m in self.methods:
-                    sel = (self.data_rt['range'] == r) & (
-                        self.data_rt['step'] == s) & (self.data_rt['method'] == m)
-                    mid = self.data_rt[sel]['re'].to_numpy().mean()
-                    self.data_rt.loc[sel, 'fre'] = (
-                        self.data_rt[sel]['re'] - mid) / mid
+        # self.data_rt.insert(0, 'fre', 0)
+        # for r in self.rngs:
+        #     for s in self.steps:
+        #         for m in self.methods:
+        #             sel = (self.data_rt['range'] == r) & (
+        #                 self.data_rt['step'] == s) & (self.data_rt['method'] == m)
+        #             mid = self.data_rt[sel]['re'].to_numpy().mean()
+        #             self.data_rt.loc[sel, 'fre'] = (
+        #                 self.data_rt[sel]['re'] - mid) / mid
 
         print(self.data_rt)
 
@@ -407,11 +424,15 @@ def gen_graf(data, types, methods=None, steps=None, hosts=None, rngs=None):
                 for r in rngs:
                     for s in steps:
                         sel_t = (wdat['host'] == h) & (
-                                wdat['method'] == m) & (
-                                wdat['range'] == r) & (
-                                wdat['step'] == s)
+                            wdat['method'] == m) & (
+                            wdat['range'] == r) & (
+                            wdat['step'] == s)
                         sel_ret = (ret_data['range'] == r) & (
-                                   ret_data['step'] == s)
-                        ret_data.loc[sel_ret, cname] = wdat[sel_t][t].to_numpy()[0]  # ???????????????????????
+                            ret_data['step'] == s)
+                        ret_data.loc[sel_ret, cname] = wdat[sel_t][t].to_numpy()[
+                            0]  # ???????????????????????
 
+    # удалить
+    with open(Path("all_graphs") / 'data.csv', 'w') as d:
+        d.write(wdat.to_csv())
     return ret_data

@@ -22,12 +22,12 @@ def mrk():
 
 if __name__ == '__main__':
 
-    methods = ["CF4"]
-    host = ['host#b9ec88ad']
+    methods = ["M6"]
+    host = ['host#2a']
 
     wdata = gs.DataRefine(STORE_DIR, DATA_DIR)
 
-    data_to_graf = gs.gen_graf(wdata, ['mean_time', ], hosts=host, rngs=['(0.1,0.3)'])
+    data_to_graf = gs.gen_graf(wdata, ['frt', ], methods=methods, rngs=['(0.1,0.3)'])
     # data2 = gs.gen_graf(wdata, ['frt', ], hosts=host, rngs=['(0.1,0.2)'])
     # data3 = gs.gen_graf(wdata, ['frt', ], hosts=host, rngs=['(0.1,0.15)'])
     
@@ -39,15 +39,15 @@ if __name__ == '__main__':
     for i in data_to_graf.columns.values.tolist():
         if i.find('host') >= 0:
             fm = next(m)
-            # plt.plot(data_t['step'], np.abs(data_t[i]), f'{fm}-', label=str(i))
+            plt.plot(data_t['step'], np.abs(data_t[i]), f'{fm}-', label=str(i))
 
     tag = methods[0]
-    # plt.title(tag)
-    # plt.legend(fontsize=8)
-    # plt.xscale("log")
-    # plt.yscale("log")
-    # plt.savefig(f'plot_{tag}.pdf')
-    # plt.show()
+    plt.title(tag)
+    plt.legend(fontsize=8)
+    plt.xscale("log")
+    #plt.yscale("log")
+    plt.savefig(f'plot_{tag}.pdf')
+    plt.show()
 
     with open(Path(STORE_DIR) / 'data_to_graf.csv', 'w') as d:
         d.write(data_to_graf.to_csv())
