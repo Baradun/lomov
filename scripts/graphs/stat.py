@@ -136,7 +136,7 @@ METHODS = ["M2", "M4", "M6", "CF4", "CF4:3"]
 
 
 class DataRefine():
-    def __init__(self, storeDir, dataDir, data_base=None):
+    def __init__(self, storeDir, dataDir, data_ext=None):
         """
         Populate internal data structure with data located in storeDir/dataDir.
         """
@@ -191,7 +191,7 @@ class DataRefine():
 
         # Initialization.
         self.data = pd.DataFrame()
-        self.data_base = data_base
+        self.data_ext = data_ext
 
         if os.path.exists(Path(storeDir) / 'collected_data.csv'):
             with open(Path(storeDir) / 'collected_data.csv', 'r') as d:
@@ -318,15 +318,13 @@ class DataRefine():
                         prob - base_prob) / base_prob
 
         # 8 formula
-        if self.data_base is not None:
-            self.data_rt.insert(0, 'base_prob', 0)
+        if self.data_ext is not None:
+            self.data_rt.insert(0, 'ext_prob', 0)
             for r in self.rngs:
+                sel_ext = (self.data_ext['range'] == r)
+                ext_prob = self.data_ext[sel_ext]['prob'].to_numpy()
                 for m in self.methods:
                     for s in self.steps:
-                        sel_base = (self.data_base['range'] == r) & (
-                            self.data_base['step'] == s) & (self.data_base['method'] == m)
-                        base_prob = self.data_base[sel_base]['prob'].to_numpy().mean()
-                        
                         sel = (self.data['range'] == r) & (
                             self.data['method'] == m) & (self.data['step'] == s)
                         sel_t = (self.data_rt['range'] == r) & (
@@ -334,8 +332,8 @@ class DataRefine():
 
                         prob = self.data[sel]['prob'].to_numpy().mean()
                         # self.data_rt.loc[sel_t, 'prob'] = prob
-                        self.data_rt.loc[sel_t, 'base_prob'] = (
-                            prob - base_prob) / base_prob
+                        self.data_rt.loc[sel_t, 'ext_prob'] = (
+                            prob - ext_prob) / ext_prob
 
         # filling the 'fre' column
 
