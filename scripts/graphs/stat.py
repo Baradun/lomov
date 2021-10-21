@@ -9,8 +9,12 @@ import os
 from datetime import date
 from pathlib import Path
 
+from pandas.core.frame import DataFrame
+
 import numpy as np
 import pandas as pd
+
+#from scripts.all_stat import STORE_DIR
 
 REF_METHOD = "M6"
 REF_STEP = 1e-10
@@ -136,7 +140,7 @@ METHODS = ["M2", "M4", "M6", "CF4", "CF4:3"]
 
 
 class DataRefine():
-    def __init__(self, storeDir, dataDir, data_ext=None):
+    def __init__(self, storeDir: str, dataDir: str, data_ext=None): 
         """
         Populate internal data structure with data located in storeDir/dataDir.
         """
@@ -191,7 +195,12 @@ class DataRefine():
 
         # Initialization.
         self.data = pd.DataFrame()
-        self.data_ext = data_ext
+        if data_ext is None:
+            print(dataDir)
+            self.data_ext = parse_adaptive(dataDir)
+        else:
+            self.data_ext = data_ext
+
 
         if os.path.exists(Path(storeDir) / 'collected_data.csv'):
             with open(Path(storeDir) / 'collected_data.csv', 'r') as d:
@@ -287,7 +296,7 @@ class DataRefine():
         print(self.data_rt)
 
     # public interface
-    def time_info(self):
+    def time_info(self) -> pd.DataFrame:
         if not self.__timeInfo:
             self.__timeInfo = True
             self.__time_info()
@@ -321,8 +330,9 @@ class DataRefine():
         if self.data_ext is not None:
             self.data_rt.insert(0, 'ext_prob', 0)
             for r in self.rngs:
+                print(self.data_ext)
                 sel_ext = (self.data_ext['range'] == r)
-                ext_prob = self.data_ext[sel_ext]['prob'].to_numpy()
+                ext_prob = float(self.data_ext[sel_ext]['prob'].to_numpy()[0])
                 for m in self.methods:
                     for s in self.steps:
                         sel = (self.data['range'] == r) & (
@@ -350,7 +360,7 @@ class DataRefine():
         print(self.data_rt)
 
     # public interface
-    def prob_info(self):
+    def prob_info(self) -> pd.DataFrame:
         if not self.__probInfo:
             self.__probInfo = True
             self.__prob_info()
@@ -371,14 +381,14 @@ class DataRefine():
         print(self.data_rt)
 
     # public interface
-    def sp_info(self):
+    def sp_info(self) -> pd.DataFrame:
         if not self.__spInfo:
             self.__spInfo = True
             self.__sp_info()
 
         return self.data_rt
 
-    def all_info(self):
+    def all_info(self) -> pd.DataFrame:
         # rely on side effect of calling methods.
         self.time_info()
         self.prob_info()
@@ -434,3 +444,40 @@ def gen_graf(data, types, methods=None, steps=None, hosts=None, rngs=None):
     with open(Path("all_graphs") / 'data.csv', 'w') as d:
         d.write(wdat.to_csv())
     return ret_data
+
+def parse_range(range: str) -> str:
+    range = range[1:len(range)-1]
+    l = []
+    
+    if range.find(',') != -1:
+        range = range.split(',')
+    else:
+        range = range.split('.')
+    
+    for i in range:
+        if i.find('.') != -1:
+            l.extend(i.split('.'))
+        else:
+            l.append(i)
+    return f'({l[0]}.{l[1]},{l[2]}.{l[3]})'
+
+
+def parse_adaptive(path: str) -> pd.DataFrame:
+    data_adapt = pd.DataFrame({
+            'e': [],
+            'range': [],
+            'prob': [],
+        })
+    
+    with open(Path(path) / 'adaptive.dat', 'r') as f:
+        line = f.readline().split()
+        while line:
+            data_adapt = data_adapt.append({
+                'e' : line[0],
+                'range' : parse_range(line[1]),
+                'prob' : line[2],
+            }, ignore_index=True)
+            line = f.readline().split()
+    
+    return data_adapt
+        
