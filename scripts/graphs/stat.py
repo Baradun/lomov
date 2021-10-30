@@ -9,9 +9,6 @@ import os
 from datetime import date
 from pathlib import Path
 
-from pandas.core.frame import DataFrame
-
-import numpy as np
 import pandas as pd
 
 #from scripts.all_stat import STORE_DIR
@@ -21,126 +18,8 @@ REF_STEP = 1e-10
 METHODS = ["M2", "M4", "M6", "CF4", "CF4:3"]
 
 
-#  def info(content):
-#      """Extract and return a list of necessary parameters from a content.
-#      """
-
-#      cntn = content.split()
-#      start = float(cntn[cntn.index('start') + 2])
-#      end = float(cntn[cntn.index('end') + 2])
-#      step = float(cntn[cntn.index('step') + 2])
-#      time = float(cntn[cntn.index('time') + 2])
-#      P = float(cntn[cntn.index('P') + 2])
-
-#      return start, end, step, time, P
-
-
-#  def collect_data(DATA_DIR):
-#      """Get data from files in data directory.
-
-#      Also do some statistical calculations.
-#      """
-#      r_data = []
-#      for f in Path(DATA_DIR).glob('*.dat'):
-#          with open(f, 'r') as fil:
-#              tf = str(f)
-#              run = tf[tf.rindex('_')+2:tf.find('.dat')]
-#              method = tf[tf.rindex('/')+1:tf.index('_')]
-
-#              data = fil.read()
-#              start, end, step, time, P = info(data)
-#              rng = f"({start},{end})"
-#              r_data.append(
-#                  {
-#                      "range": rng,
-#                      "start": start,
-#                      "end": end,
-#                      'run': run,
-#                      "method": method,
-#                      "step": step,
-#                      "prob": P,  # prob
-#                      "time": time
-#                  }
-#              )
-
-#      return r_data
-
-# data_t = {k: [] for k in METHODS}
-# for m in METHODS:
-#     tt = dict()
-#     met = []
-#     for f in Path(DATA_DIR).glob('*.dat'):
-#         with open(f, 'r') as fil:
-#             tf = str(f)
-#             run = tf[tf.rindex('_')+2:tf.find('.dat')]
-
-#             data = fil.read()
-#             # Possible issue: if for some reason file exists but doesn't
-#             # contain necessary information, for example, file was created
-#             # before data were written and the process was killed, or if
-#             # file was written by other programs with other parameter
-#             # listing style.
-#             start, end, step, time, P = info(data)
-#             idx = f"{start},{end}_{step}"
-
-#             if idx not in tt:
-#                 tt[idx] = [float(time), 1]
-#                 met.append(
-#                     {
-#                         'start': start,
-#                         'end': end,
-#                         'run': run,
-#                         'step': step,
-#                         'prob': P,
-#                         'time': 0.0
-#                     }
-#                 )
-#                 continue
-#             tt[idx][0] = tt[idx][0] + float(time)
-#             tt[idx][1] = tt[idx][1] + 1
-
-#     print(tt)
-#     for itm in met:
-#         idx = f"{itm['start']},{itm['end']}_{itm['step']}"
-#         itm['time'] = tt[idx][0] / tt[idx][1]
-#     data_t[m] = met
-
-# print(data_t)
-# data_c = []
-# for m in METHODS:
-#     for el in data_t[m]:
-#         data_c.append(
-#             {
-#                 "range": f"({el['start']},{el['end']})",
-#                 "start": el['start'],
-#                 "end": el['end'],
-#                 'run': el['run'],
-#                 "method": m,
-#                 "step": el['step'],
-#                 "prob": el['prob'],
-#                 "time": el['time']
-#             }
-#         )
-
-# return data_c
-
-
-#  def collect_all_data(DATA_DIR):
-#      data = pd.DataFrame()
-
-#      for i in os.listdir(DATA_DIR):
-#          if i.startswith('host'):
-#              data_t = pd.DataFrame(collect_data(
-#                  Path(DATA_DIR) / str(i) / 'data'))
-#              data_t['host'] = i
-#              data = data.append(data_t, ignore_index=True)
-
-#      print(data)
-#      return data
-
-
 class DataRefine():
-    def __init__(self, storeDir: str, dataDir: str, data_ext=None): 
+    def __init__(self, storeDir: str, dataDir: str, data_ext=None):
         """
         Populate internal data structure with data located in storeDir/dataDir.
         """
@@ -177,10 +56,9 @@ class DataRefine():
 
                     data = fil.read()
                     start, end, step, time, P = info(data)
-                    rng = f"({start},{end})"
                     r_data.append(
                         {
-                            "range": rng,
+                            "range": f"({start};{end})",
                             "start": start,
                             "end": end,
                             'run': run,
@@ -190,8 +68,41 @@ class DataRefine():
                             "time": time
                         }
                     )
-
             return r_data
+
+        def parse_adaptive(path: str) -> pd.DataFrame:
+
+            def parse_range(range: str) -> str:
+                range = range[1:len(range)-1]
+                l = []
+
+                if range.find(',') != -1:
+                    range = range.split(',')
+                else:
+                    range = range.split('.')
+
+                for i in range:
+                    if i.find('.') != -1:
+                        l.extend(i.split('.'))
+                    else:
+                        l.append(i)
+                return f'({l[0]}.{l[1]};{l[2]}.{l[3]})'
+
+            data_adapt = pd.DataFrame({
+                'e': [],
+                'range': [],
+                'prob': [],
+            })
+
+            with open(Path(path) / 'adaptive.dat', 'r') as f:
+                for l in f:
+                    line = l.split()
+                    data_adapt = data_adapt.append({
+                        'e': line[0],
+                        'range': parse_range(line[1]),
+                        'prob': line[2],
+                    }, ignore_index=True)
+            return data_adapt
 
         # Initialization.
         self.data = pd.DataFrame()
@@ -200,7 +111,6 @@ class DataRefine():
             self.data_ext = parse_adaptive(dataDir)
         else:
             self.data_ext = data_ext
-
 
         if os.path.exists(Path(storeDir) / 'collected_data.csv'):
             with open(Path(storeDir) / 'collected_data.csv', 'r') as d:
@@ -444,40 +354,3 @@ def gen_graf(data, types, methods=None, steps=None, hosts=None, rngs=None):
     with open(Path("all_graphs") / 'data.csv', 'w') as d:
         d.write(wdat.to_csv())
     return ret_data
-
-def parse_range(range: str) -> str:
-    range = range[1:len(range)-1]
-    l = []
-    
-    if range.find(',') != -1:
-        range = range.split(',')
-    else:
-        range = range.split('.')
-    
-    for i in range:
-        if i.find('.') != -1:
-            l.extend(i.split('.'))
-        else:
-            l.append(i)
-    return f'({l[0]}.{l[1]},{l[2]}.{l[3]})'
-
-
-def parse_adaptive(path: str) -> pd.DataFrame:
-    data_adapt = pd.DataFrame({
-            'e': [],
-            'range': [],
-            'prob': [],
-        })
-    
-    with open(Path(path) / 'adaptive.dat', 'r') as f:
-        line = f.readline().split()
-        while line:
-            data_adapt = data_adapt.append({
-                'e' : line[0],
-                'range' : parse_range(line[1]),
-                'prob' : line[2],
-            }, ignore_index=True)
-            line = f.readline().split()
-    
-    return data_adapt
-        

@@ -22,18 +22,21 @@ def mrk():
 
 if __name__ == '__main__':
 
-    methods = ["M6"]
+    methods = ["M2"]
     host = ['host#2a']
 
     wdata = gs.DataRefine(STORE_DIR, DATA_DIR)
 
-    data_to_graf = gs.gen_graf(wdata, ['frt', ], methods=methods, rngs=['(0.1,0.3)'])
+    data_to_graf = gs.gen_graf(wdata, ['ext_prob', ], methods=methods, rngs=['(0.1;0.3)'])
     # data2 = gs.gen_graf(wdata, ['frt', ], hosts=host, rngs=['(0.1,0.2)'])
     # data3 = gs.gen_graf(wdata, ['frt', ], hosts=host, rngs=['(0.1,0.15)'])
     
-    print(data_to_graf)
+    
 
     data_t = data_to_graf.sort_values(by='step')
+    sel = (data_t['step'] <= 0.0000001 )
+    data_t = data_t[sel]
+    print(data_t)
 
     m = mrk()
     for i in data_to_graf.columns.values.tolist():
@@ -45,7 +48,7 @@ if __name__ == '__main__':
     plt.title(tag)
     plt.legend(fontsize=8)
     plt.xscale("log")
-    #plt.yscale("log")
+    plt.yscale("log")
     plt.savefig(f'plot_{tag}.pdf')
     plt.show()
 
